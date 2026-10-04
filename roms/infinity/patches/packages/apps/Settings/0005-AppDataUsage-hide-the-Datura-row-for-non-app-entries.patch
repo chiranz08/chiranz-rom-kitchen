@@ -1,0 +1,21 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: chiranz <chiranz08@users.noreply.github.com>
+Date: Sun, 4 Oct 2026 11:13:14 +0000
+Subject: [PATCH 5/5] AppDataUsage: hide the Datura row for non-app entries
+
+---
+ src/com/android/settings/datausage/AppDataUsage.java | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/com/android/settings/datausage/AppDataUsage.java b/src/com/android/settings/datausage/AppDataUsage.java
+index b416ee0..1bd958e 100644
+--- a/src/com/android/settings/datausage/AppDataUsage.java
++++ b/src/com/android/settings/datausage/AppDataUsage.java
+@@ -206,6 +206,7 @@ public class AppDataUsage extends DataUsageBaseFragment implements OnPreferenceC
+             mIcon = uidDetail.icon;
+             mLabel = uidDetail.label;
+             mPackageName = context.getPackageName();
++            removePreference(KEY_DATURA_FIREWALL);
+ 
+             removePreference(KEY_UNRESTRICTED_DATA);
+             removePreference(KEY_RESTRICT_ALL);

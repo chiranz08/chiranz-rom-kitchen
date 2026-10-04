@@ -1,0 +1,26 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: chiranz <chiranz08@users.noreply.github.com>
+Date: Sun, 4 Oct 2026 06:53:18 +0000
+Subject: [PATCH 1/2] AndroidBlackTheme: untinted 50% black blur surface
+ (system_surface_effect_0_dark)
+
+---
+ themes/AndroidBlackTheme/res/values-night/colors.xml | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/themes/AndroidBlackTheme/res/values-night/colors.xml b/themes/AndroidBlackTheme/res/values-night/colors.xml
+index 00d2c3f..9fc7aa2 100644
+--- a/themes/AndroidBlackTheme/res/values-night/colors.xml
++++ b/themes/AndroidBlackTheme/res/values-night/colors.xml
+@@ -48,6 +48,9 @@
+     <color name="system_accent2_1000">#000000</color>
+     <color name="system_accent3_1000">#000000</color>
+ 
++    <!-- Blur tint for power menu, volume panel and PIN pad. Stock is Monet primary tone 20 at
++         50% alpha; keep the 50% so blur shows through, but drop the Monet tint. -->
++    <color name="system_surface_effect_0_dark">#80000000</color>
+     <color name="background_device_default_dark">#000000</color>
+     <color name="primary_dark_device_default_dark">#000000</color>
+     <color name="primary_dark_device_default_settings">#000000</color>
+
+base-commit: f7e0ef41aca7d9ecd187af5815181fc7153b99c9

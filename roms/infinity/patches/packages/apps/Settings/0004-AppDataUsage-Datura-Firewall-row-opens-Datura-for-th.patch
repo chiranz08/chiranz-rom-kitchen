@@ -1,0 +1,110 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: chiranz <chiranz08@users.noreply.github.com>
+Date: Sun, 4 Oct 2026 11:13:06 +0000
+Subject: [PATCH 4/5] AppDataUsage: Datura Firewall row (opens Datura for the
+ app)
+
+---
+ res/values/datura_strings.xml                 |  6 +++++
+ res/xml/app_data_usage.xml                    |  5 ++++
+ .../settings/datausage/AppDataUsage.java      | 25 +++++++++++++++++++
+ 3 files changed, 36 insertions(+)
+ create mode 100644 res/values/datura_strings.xml
+
+diff --git a/res/values/datura_strings.xml b/res/values/datura_strings.xml
+new file mode 100644
+index 0000000..6d99c15
+--- /dev/null
++++ b/res/values/datura_strings.xml
+@@ -0,0 +1,6 @@
++<?xml version="1.0" encoding="utf-8"?>
++<!-- Datura firewall link (from Pixelify-AOSP) -->
++<resources>
++    <string name="data_usage_app_datura_firewall">Datura Firewall</string>
++    <string name="data_usage_app_datura_firewall_summary">Per-app network rules for this app</string>
++</resources>
+diff --git a/res/xml/app_data_usage.xml b/res/xml/app_data_usage.xml
+index b7dc2b0..1c71f9c 100644
+--- a/res/xml/app_data_usage.xml
++++ b/res/xml/app_data_usage.xml
+@@ -40,6 +40,11 @@
+             android:title="@string/data_usage_app_settings"
+             settings:controller="com.android.settings.datausage.AppDataUsageAppSettingsController" />
+ 
++        <Preference
++            android:key="datura_firewall"
++            android:title="@string/data_usage_app_datura_firewall"
++            android:summary="@string/data_usage_app_datura_firewall_summary" />
++
+         <com.android.settingslib.RestrictedSwitchPreference
+             android:key="restrict_all"
+             android:title="@string/data_usage_app_restrict_all"
+diff --git a/src/com/android/settings/datausage/AppDataUsage.java b/src/com/android/settings/datausage/AppDataUsage.java
+index 88db732..b416ee0 100644
+--- a/src/com/android/settings/datausage/AppDataUsage.java
++++ b/src/com/android/settings/datausage/AppDataUsage.java
+@@ -29,6 +29,7 @@ import android.app.Activity;
+ import android.app.settings.SettingsEnums;
+ import android.content.Context;
+ import android.content.pm.ApplicationInfo;
++import android.content.Intent;
+ import android.content.pm.PackageManager;
+ import android.graphics.drawable.Drawable;
+ import android.net.NetworkPolicyManager;
+@@ -80,6 +81,9 @@ public class AppDataUsage extends DataUsageBaseFragment implements OnPreferenceC
+     static final String ARG_SELECTED_CYCLE = "selected_cycle";
+ 
+     private static final String KEY_RESTRICT_ALL = "restrict_all";
++    private static final String KEY_DATURA_FIREWALL = "datura_firewall";
++    private static final String DATURA_PACKAGE_NAME = "org.calyxos.datura";
++    private static final String DATURA_MAIN_ACTIVITY = DATURA_PACKAGE_NAME + ".main.MainActivity";
+     private static final String KEY_RESTRICT_BACKGROUND = "restrict_background";
+     private static final String KEY_RESTRICT_CELLULAR = "restrict_cellular";
+     private static final String KEY_RESTRICT_VPN = "restrict_vpn";
+@@ -157,6 +161,7 @@ public class AppDataUsage extends DataUsageBaseFragment implements OnPreferenceC
+                 final UidDetail uidDetail = uidDetailProvider.getUidDetail(mAppItem.key, true);
+                 mIcon = uidDetail.icon;
+                 mLabel = uidDetail.label;
++                removePreference(KEY_DATURA_FIREWALL);
+                 removePreference(KEY_UNRESTRICTED_DATA);
+                 removePreference(KEY_RESTRICT_ALL);
+                 removePreference(KEY_RESTRICT_BACKGROUND);
+@@ -188,6 +193,9 @@ public class AppDataUsage extends DataUsageBaseFragment implements OnPreferenceC
+                 mRestrictWifi.setOnPreferenceChangeListener(this);
+                 mUnrestrictedData = findPreference(KEY_UNRESTRICTED_DATA);
+                 mUnrestrictedData.setOnPreferenceChangeListener(this);
++                if (!isDaturaInstalled()) {
++                    removePreference(KEY_DATURA_FIREWALL);
++                }
+             }
+             mDataSaverBackend = new DataSaverBackend(mContext);
+ 
+@@ -450,6 +458,14 @@ public class AppDataUsage extends DataUsageBaseFragment implements OnPreferenceC
+         if (super.onPreferenceTreeClick(preference)) {
+             return true;
+         }
++        if (KEY_DATURA_FIREWALL.equals(preference.getKey())) {
++            final Intent intent = new Intent(Intent.ACTION_MAIN)
++                    .setClassName(DATURA_PACKAGE_NAME, DATURA_MAIN_ACTIVITY)
++                    .putExtra(Intent.EXTRA_UID, mAppItem.key);
++            getActivity().startActivityAsUser(intent,
++                    UserHandle.of(UserHandle.getUserId(mAppItem.key)));
++            return true;
++        }
+         if (!(preference instanceof IntroPreference)) return false;
+ 
+         String pkg = !mPackages.isEmpty() ? mPackages.valueAt(0) : null;
+@@ -494,4 +510,13 @@ public class AppDataUsage extends DataUsageBaseFragment implements OnPreferenceC
+                     hasInternetPermission());
+         }
+     }
++
++    private boolean isDaturaInstalled() {
++        try {
++            mPackageManager.getPackageInfo(DATURA_PACKAGE_NAME, 0);
++            return true;
++        } catch (PackageManager.NameNotFoundException e) {
++            return false;
++        }
++    }
+ }

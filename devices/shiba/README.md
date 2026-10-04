@@ -7,4 +7,4 @@
 | Kernel | LineageOS GKI 6.1, built by the ROM's `build_kernel` step at lunch |
 | Blobs | TheMuppets `proprietary_vendor_google_shiba` (`lineage-24.0`) |
 
-Fixes every ROM needs on this device: [common-fixes.md](common-fixes.md) (to be written as ROMs are finalised).
+Fixes every ROM needs on this device: [common-fixes.md](common-fixes.md) .

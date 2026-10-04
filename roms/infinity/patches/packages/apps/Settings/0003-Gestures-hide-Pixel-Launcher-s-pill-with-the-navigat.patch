@@ -1,0 +1,90 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: chiranz <chiranz08@users.noreply.github.com>
+Date: Sun, 4 Oct 2026 08:47:19 +0000
+Subject: [PATCH 3/5] Gestures: hide Pixel Launcher's pill with the navigation
+ hint switch
+
+Pixel Launcher draws the gesture pill and ignores LineageSettings.System
+.NAVIGATION_BAR_HINT. Toggle its no-gesture-hint overlay and restart it,
+like Evolution X does.
+---
+ .../GestureNavigationSettingsFragment.java    | 42 +++++++++++++++++++
+ 1 file changed, 42 insertions(+)
+
+diff --git a/src/com/android/settings/gestures/GestureNavigationSettingsFragment.java b/src/com/android/settings/gestures/GestureNavigationSettingsFragment.java
+index 61165b5..4306d2c 100644
+--- a/src/com/android/settings/gestures/GestureNavigationSettingsFragment.java
++++ b/src/com/android/settings/gestures/GestureNavigationSettingsFragment.java
+@@ -17,11 +17,17 @@
+ package com.android.settings.gestures;
+ 
+ import android.app.settings.SettingsEnums;
++import android.app.ActivityManager;
+ import android.content.ContentResolver;
+ import android.content.Context;
+ import android.content.Intent;
+ import android.content.res.Resources;
+ import android.content.res.TypedArray;
++import android.content.om.OverlayIdentifier;
++import android.content.om.OverlayManager;
++import android.content.om.OverlayManagerTransaction;
++import android.content.pm.PackageManager;
++import android.util.Log;
+ import android.os.Bundle;
+ import android.os.UserHandle;
+ import android.provider.Settings;
+@@ -76,6 +82,12 @@ public class GestureNavigationSettingsFragment extends DashboardFragment impleme
+     private static final String KEY_EDGE_LONG_SWIPE = "navigation_bar_edge_long_swipe";
+     private static final String KEY_ENABLE_TASKBAR = "enable_taskbar";
+     private static final String KEY_GESTURE_HAPTIC = "back_gesture_haptic";
++    private static final String KEY_NAVIGATION_BAR_HINT = "navigation_bar_hint";
++    // Pixel Launcher draws the gesture pill and ignores LineageSettings.System.NAVIGATION_BAR_HINT,
++    // so hiding it is done with a runtime overlay on the launcher (see vendor/chiranz).
++    private static final String NEXUSLAUNCHER_PACKAGE = "com.google.android.apps.nexuslauncher";
++    private static final String NOGESTUREHINT_OVERLAY =
++            "com.google.android.apps.nexuslauncher.overlay.nogesturehint";
+ 
+     final Intent mLaunchTutorialIntent =  new Intent(ACTION_GESTURE_SANDBOX)
+             .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+@@ -124,6 +136,14 @@ public class GestureNavigationSettingsFragment extends DashboardFragment impleme
+         initSliderPreference(GESTURE_BACK_HEIGHT_KEY);
+         initTutorialButton();
+ 
++        final Preference hintPref = findPreference(KEY_NAVIGATION_BAR_HINT);
++        if (hintPref != null) {
++            hintPref.setOnPreferenceChangeListener((preference, newValue) -> {
++                setPixelLauncherGestureHint((Boolean) newValue);
++                return true;
++            });
++        }
++
+         initGestureNavbarLengthPreference();
+         initGestureNavbarHeightPreference();
+ 
+@@ -418,4 +438,26 @@ public class GestureNavigationSettingsFragment extends DashboardFragment impleme
+                 }
+             };
+ 
++
++    private void setPixelLauncherGestureHint(boolean show) {
++        final Context context = getContext();
++        if (context == null) return;
++        try {
++            context.getPackageManager().getPackageInfo(NEXUSLAUNCHER_PACKAGE, 0);
++        } catch (PackageManager.NameNotFoundException e) {
++            return;
++        }
++        try {
++            final OverlayManager om = context.getSystemService(OverlayManager.class);
++            om.commit(new OverlayManagerTransaction.Builder()
++                    .setEnabled(new OverlayIdentifier(NOGESTUREHINT_OVERLAY), !show,
++                            UserHandle.USER_CURRENT)
++                    .build());
++            // Pixel Launcher only reads the pill dimensions at start.
++            context.getSystemService(ActivityManager.class)
++                    .forceStopPackage(NEXUSLAUNCHER_PACKAGE);
++        } catch (Exception e) {
++            Log.w("GestureNavSettings", "Failed to toggle " + NOGESTUREHINT_OVERLAY, e);
++        }
++    }
+ }

@@ -1,0 +1,26 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: chiranz <chiranz08@users.noreply.github.com>
+Date: Sun, 4 Oct 2026 08:47:19 +0000
+Subject: [PATCH 2/2] AndroidBlackTheme: untinted shade_panel_fg (drawer/shade
+ over blur) and black system_surface_dark
+
+---
+ themes/AndroidBlackTheme/res/values-night/colors.xml | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/themes/AndroidBlackTheme/res/values-night/colors.xml b/themes/AndroidBlackTheme/res/values-night/colors.xml
+index 9fc7aa2..2aae67e 100644
+--- a/themes/AndroidBlackTheme/res/values-night/colors.xml
++++ b/themes/AndroidBlackTheme/res/values-night/colors.xml
+@@ -51,6 +51,11 @@
+     <!-- Blur tint for power menu, volume panel and PIN pad. Stock is Monet primary tone 20 at
+          50% alpha; keep the 50% so blur shows through, but drop the Monet tint. -->
+     <color name="system_surface_effect_0_dark">#80000000</color>
++    <!-- Pixel Launcher's app drawer (blur on) and the shade over blur use shade_panel_fg, which is
++         system_accent1_600 at 32%: the pure black theme left it Monet-tinted. Same alpha, no tint. -->
++    <color name="shade_panel_fg">#52000000</color>
++    <!-- Base surface; the other dark surface tokens are already black here. -->
++    <color name="system_surface_dark">#000000</color>
+     <color name="background_device_default_dark">#000000</color>
+     <color name="primary_dark_device_default_dark">#000000</color>
+     <color name="primary_dark_device_default_settings">#000000</color>
