@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Pixel 8 (shiba) for ASCP (Pixelify-AOSP 17). There is no official Pixelify tree, so:
+     LineageOS lineage-24.0 device/SoC/kernel trees (our forks, branch pixelify-17) + TheMuppets blobs.
+     Every project pinned to an exact commit. -->
+<manifest>
+  <remote name="chiranz08" fetch="https://github.com/chiranz08" />
+
+  <!-- LineageOS shusky + zuma (base bf38587 / f085107 on lineage-24.0) plus our pixelify-17 commits -->
+  <project name="android_device_google_shusky" path="device/google/shusky" remote="chiranz08"
+           revision="60d39c0cd8a69f56ac43423c6b1739b232861e5f" upstream="pixelify-17" />
+  <project name="android_device_google_zuma" path="device/google/zuma" remote="chiranz08"
+           revision="4a594867a38e3e24708a79be2795c7d6c8dab485" upstream="pixelify-17" />
+  <project name="LineageOS/android_device_google_shusky-kernels" path="device/google/shusky-kernels" remote="github"
+           revision="cd4a90f656c18677b6171cef35c5b5573ed537ca" upstream="lineage-24.0" clone-depth="1" />
+  <!-- Blobs: patches/vendor/google/shiba is applied after sync -->
+  <project name="TheMuppets/proprietary_vendor_google_shiba" path="vendor/google/shiba" remote="github"
+           revision="06afa342d2bdeec74bf0b73251f37965c761cb1c" upstream="lineage-24.0" clone-depth="1" />
+  <!-- Google face unlock enrolment (replaces the ROM's software face unlock) -->
+  <project name="crdroidandroid/proprietary_vendor_google_faceunlock" path="vendor/google/faceunlock" remote="gitlab"
+           revision="f0bae3a20b09a5f4d9403d611a6c751ec13b81ef" upstream="17.0" clone-depth="1" />
+  <!-- Google Camera (overrides Aperture) -->
+  <project name="ionutsandroidbuilds/proprietary_vendor_google_camera" path="vendor/google/camera" remote="gitlab"
+           revision="3868ff7376e51f0edfe9741e8644b47a7b522c54" upstream="zuma" clone-depth="1" />
+  <!-- JamesDSP (AIDL effect for the Pixel 8 audio HAL) -->
+  <project name="ionutgherman/vendor_JamesDSP" path="vendor/JamesDSP" remote="github"
+           revision="48fd607cca533c8e2a7c8e24b86a89f637857314" upstream="aidl" clone-depth="1" />
+</manifest>

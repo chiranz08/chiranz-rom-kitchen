@@ -1,0 +1,22 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: chiranz <chiranz08@users.noreply.github.com>
+Date: Sat, 3 Oct 2026 19:42:17 +0000
+Subject: [PATCH 2/3] version: drop ro.ascp.device; gen_build_prop.py already
+ writes it to product
+
+---
+ config/version.mk | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/config/version.mk b/config/version.mk
+index 5f67f52..8de8a71 100644
+--- a/config/version.mk
++++ b/config/version.mk
+@@ -45,7 +45,6 @@ PRODUCT_PRODUCT_PROPERTIES += \
+     ro.ascp.version=$(ASCP_PACKAGE_VERSION) \
+     ro.ascp.android.version=$(ASCP_ANDROID_VERSION) \
+     ro.ascp.build.date=$(ASCP_BUILD_DATE) \
+-    ro.ascp.device=$(TARGET_PRODUCT) \
+     ro.ascp.releasetype=$(ASCP_BUILD_TYPE) \
+     ro.ascp.ota.test_mode=false
+ 

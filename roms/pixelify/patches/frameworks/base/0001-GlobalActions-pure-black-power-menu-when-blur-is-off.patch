@@ -1,0 +1,48 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: chiranz <chiranz08@users.noreply.github.com>
+Date: Sun, 4 Oct 2026 06:53:18 +0000
+Subject: [PATCH 1/5] GlobalActions: pure black power menu when blur is off
+
+The non-blur fallback background is system_accent1_800, which the pure black theme
+overlay does not replace, so the power menu stayed Monet-tinted. Use black when the
+theme's surface (materialColorSurfaceContainerLow) resolves to pure black.
+---
+ .../globalactions/GlobalActionsLayout.java       | 16 ++++++++++++----
+ 1 file changed, 12 insertions(+), 4 deletions(-)
+
+diff --git a/packages/SystemUI/src/com/android/systemui/globalactions/GlobalActionsLayout.java b/packages/SystemUI/src/com/android/systemui/globalactions/GlobalActionsLayout.java
+index a400f6fb8..dc06a3c32 100644
+--- a/packages/SystemUI/src/com/android/systemui/globalactions/GlobalActionsLayout.java
++++ b/packages/SystemUI/src/com/android/systemui/globalactions/GlobalActionsLayout.java
+@@ -19,6 +19,7 @@ package com.android.systemui.globalactions;
+ import static com.android.systemui.shared.system.BlurUtils.isVolumeAndPowerBlurEnabled;
+ 
+ import android.content.Context;
++import android.graphics.Color;
+ import android.graphics.drawable.Drawable;
+ import android.graphics.drawable.GradientDrawable;
+ import android.text.TextUtils;
+@@ -83,10 +84,17 @@ public abstract class GlobalActionsLayout extends MultiListLayout {
+ 
+     private void updateIsBlurSupported() {
+         if (isVolumeAndPowerBlurEnabled() && mBackgroundsSet && mIsBlurSupported != null) {
+-            updateBackground(mContext.getColor(
+-                    mIsBlurSupported && mTranslucentPowerMenu
+-                            ? R.color.global_actions_grid_background_blur
+-                            : R.color.global_actions_grid_background_blur_fallback));
++            final boolean blurring = mIsBlurSupported && mTranslucentPowerMenu;
++            int color = mContext.getColor(blurring
++                    ? R.color.global_actions_grid_background_blur
++                    : R.color.global_actions_grid_background_blur_fallback);
++            // The non-blur fallback is an accent colour (system_accent1_800), which the pure black
++            // theme does not replace. When the theme's surface resolves to pure black, follow it.
++            if (!blurring && mContext.getColor(
++                    com.android.internal.R.color.materialColorSurfaceContainer) == Color.BLACK) {
++                color = Color.BLACK;
++            }
++            updateBackground(color);
+         }
+     }
+ 
+
+base-commit: 8dfea18c0ed9efe44873c90ecb3fafebe356dfcb

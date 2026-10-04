@@ -1,0 +1,53 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: chiranz <chiranz08@users.noreply.github.com>
+Date: Sun, 4 Oct 2026 14:51:59 +0000
+Subject: [PATCH 4/5] SystemUI: black notification scrim and PIN screen with
+ the pure black theme
+
+notification_scrim_base and bouncer_fallback_bg are Monet accents (system_accent1_800 at night)
+that the pure black theme does not replace; follow the theme when its surface container is black.
+---
+ .../com/android/systemui/bouncer/ui/BouncerColors.kt   |  2 +-
+ .../src/com/android/systemui/shade/ui/ShadeColors.kt   | 10 +++++++---
+ 2 files changed, 8 insertions(+), 4 deletions(-)
+
+diff --git a/packages/SystemUI/src/com/android/systemui/bouncer/ui/BouncerColors.kt b/packages/SystemUI/src/com/android/systemui/bouncer/ui/BouncerColors.kt
+index 719893299..a630ba6c0 100644
+--- a/packages/SystemUI/src/com/android/systemui/bouncer/ui/BouncerColors.kt
++++ b/packages/SystemUI/src/com/android/systemui/bouncer/ui/BouncerColors.kt
+@@ -29,7 +29,7 @@ object BouncerColors {
+         return if (blurSupported) {
+             ShadeColors.shadePanel(context = this, blurSupported = blurSupported, withScrim = true)
+         } else {
+-            getColor(color.bouncer_fallback_bg)
++            ShadeColors.blurFallback(this, color.bouncer_fallback_bg)
+         }
+     }
+ 
+diff --git a/packages/SystemUI/src/com/android/systemui/shade/ui/ShadeColors.kt b/packages/SystemUI/src/com/android/systemui/shade/ui/ShadeColors.kt
+index 92b163a2e..2aa976526 100644
+--- a/packages/SystemUI/src/com/android/systemui/shade/ui/ShadeColors.kt
++++ b/packages/SystemUI/src/com/android/systemui/shade/ui/ShadeColors.kt
+@@ -106,15 +106,19 @@ object ShadeColors {
+      * theme does not replace; when the theme's surfaces resolve to pure black, follow it.
+      */
+     @JvmStatic
+-    fun blurFallback(context: Context, @ColorRes fallback: Int): Int {
++    fun blurFallback(context: Context, @ColorRes fallback: Int): Int = blackThemeOr(context, fallback)
++
++    /** Black when the pure black theme is on (its surface container is black), else [color]. */
++    @JvmStatic
++    fun blackThemeOr(context: Context, @ColorRes color: Int): Int {
+         val surface = context.getColor(com.android.internal.R.color.materialColorSurfaceContainer)
+-        return if (surface == Color.BLACK) Color.BLACK else context.getColor(fallback)
++        return if (surface == Color.BLACK) Color.BLACK else context.getColor(color)
+     }
+ 
+     @JvmStatic
+     private fun notificationScrimStandard(context: Context): Int {
+         return ColorUtils.setAlphaComponent(
+-            context.getColor(R.color.notification_scrim_base),
++            blackThemeOr(context, R.color.notification_scrim_base),
+             (0.5f * 255).toInt(),
+         )
+     }

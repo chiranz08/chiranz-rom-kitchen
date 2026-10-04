@@ -13,6 +13,8 @@ git clone -q "$KEYS_TEMPLATE" "$KEYS_DIR"
 cd "$KEYS_DIR"
 # The template ships a public releasekey: never sign with it.
 rm -rf .git releasekey.pk8 releasekey.x509.pem
+# The template is Infinity's; point keys.mk at this ROM's key folder.
+sed -i "s#vendor/infinity-priv/keys#$KEYS_DIR#" keys.mk
 sed -i "s#'/C=US/[^']*'#'$KEY_SUBJECT'#" make_key.sh
 ./keys.sh </dev/null >/dev/null 2>&1 || true
 ./make_key.sh releasekey </dev/null >/dev/null 2>&1 || true

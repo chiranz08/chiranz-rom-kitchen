@@ -1,0 +1,110 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: chiranz <chiranz08@users.noreply.github.com>
+Date: Sun, 4 Oct 2026 13:57:48 +0000
+Subject: [PATCH 2/5] SystemUI: pure black shade, bouncer and volume panel when
+ blur is off
+
+The blur-off fallbacks (shade_panel_fallback, volume_dialog_view_background_blur_fallback)
+are Monet accents that the pure black theme does not replace. Follow the theme when its
+surface container resolves to pure black.
+---
+ .../com/android/systemui/shade/ui/ShadeColors.kt | 14 +++++++++++++-
+ .../ui/binder/VolumeDialogRingerViewBinder.kt    | 11 +++++++----
+ .../sliders/ui/VolumeDialogSlidersViewBinder.kt  | 16 +++++++++-------
+ 3 files changed, 29 insertions(+), 12 deletions(-)
+
+diff --git a/packages/SystemUI/src/com/android/systemui/shade/ui/ShadeColors.kt b/packages/SystemUI/src/com/android/systemui/shade/ui/ShadeColors.kt
+index d9d4feb25..92b163a2e 100644
+--- a/packages/SystemUI/src/com/android/systemui/shade/ui/ShadeColors.kt
++++ b/packages/SystemUI/src/com/android/systemui/shade/ui/ShadeColors.kt
+@@ -17,6 +17,8 @@
+ package com.android.systemui.shade.ui
+ 
+ import android.content.Context
++import android.graphics.Color
++import androidx.annotation.ColorRes
+ import com.android.internal.graphics.ColorUtils
+ import com.android.systemui.res.R
+ 
+@@ -96,7 +98,17 @@ object ShadeColors {
+ 
+     @JvmStatic
+     private fun shadePanelFallback(context: Context): Int {
+-        return context.getColor(R.color.shade_panel_fallback)
++        return blurFallback(context, R.color.shade_panel_fallback)
++    }
++
++    /**
++     * Colour for a surface while blur is off. The fallbacks are Monet accents, which the pure black
++     * theme does not replace; when the theme's surfaces resolve to pure black, follow it.
++     */
++    @JvmStatic
++    fun blurFallback(context: Context, @ColorRes fallback: Int): Int {
++        val surface = context.getColor(com.android.internal.R.color.materialColorSurfaceContainer)
++        return if (surface == Color.BLACK) Color.BLACK else context.getColor(fallback)
+     }
+ 
+     @JvmStatic
+diff --git a/packages/SystemUI/src/com/android/systemui/volume/dialog/ringer/ui/binder/VolumeDialogRingerViewBinder.kt b/packages/SystemUI/src/com/android/systemui/volume/dialog/ringer/ui/binder/VolumeDialogRingerViewBinder.kt
+index 4e1f921e1..69b2341f3 100644
+--- a/packages/SystemUI/src/com/android/systemui/volume/dialog/ringer/ui/binder/VolumeDialogRingerViewBinder.kt
++++ b/packages/SystemUI/src/com/android/systemui/volume/dialog/ringer/ui/binder/VolumeDialogRingerViewBinder.kt
+@@ -40,6 +40,7 @@ import com.android.app.tracing.coroutines.launchTraced
+ import com.android.internal.R as internalR
+ import com.android.internal.graphics.drawable.BackgroundBlurDrawable
+ import com.android.systemui.res.R
++import com.android.systemui.shade.ui.ShadeColors
+ import com.android.systemui.volume.dialog.dagger.scope.VolumeDialogScope
+ import com.android.systemui.volume.dialog.ringer.ui.util.VolumeDialogRingerDrawerTransitionListener
+ import com.android.systemui.volume.dialog.ringer.ui.util.updateCloseState
+@@ -336,10 +337,12 @@ constructor(
+                 }
+             )
+             (layers.getDrawable(1) as GradientDrawable).setColor(
+-                context.getColor(
+-                    if (supported) R.color.volume_dialog_view_background_blur
+-                    else R.color.volume_dialog_view_background_blur_fallback
+-                )
++                if (supported) context.getColor(R.color.volume_dialog_view_background_blur)
++                else
++                    ShadeColors.blurFallback(
++                        context,
++                        R.color.volume_dialog_view_background_blur_fallback,
++                    )
+             )
+         }
+     }
+diff --git a/packages/SystemUI/src/com/android/systemui/volume/dialog/sliders/ui/VolumeDialogSlidersViewBinder.kt b/packages/SystemUI/src/com/android/systemui/volume/dialog/sliders/ui/VolumeDialogSlidersViewBinder.kt
+index 7322fd8b5..20f8d78df 100644
+--- a/packages/SystemUI/src/com/android/systemui/volume/dialog/sliders/ui/VolumeDialogSlidersViewBinder.kt
++++ b/packages/SystemUI/src/com/android/systemui/volume/dialog/sliders/ui/VolumeDialogSlidersViewBinder.kt
+@@ -28,6 +28,7 @@ import com.android.app.tracing.coroutines.launchInTraced
+ import com.android.app.tracing.coroutines.launchTraced
+ import com.android.internal.graphics.drawable.BackgroundBlurDrawable
+ import com.android.systemui.res.R
++import com.android.systemui.shade.ui.ShadeColors
+ import com.android.systemui.util.children
+ import com.android.systemui.volume.dialog.dagger.scope.VolumeDialogScope
+ import com.android.systemui.volume.dialog.sliders.dagger.VolumeDialogSliderComponent
+@@ -130,13 +131,14 @@ constructor(
+             }
+         )
+         (layers.getDrawable(1) as GradientDrawable).setColor(
+-            context.getColor(
+-                if (supported) {
+-                    R.color.volume_dialog_view_background_blur
+-                } else {
+-                    R.color.volume_dialog_view_background_blur_fallback
+-                }
+-            )
++            if (supported) {
++                context.getColor(R.color.volume_dialog_view_background_blur)
++            } else {
++                ShadeColors.blurFallback(
++                    context,
++                    R.color.volume_dialog_view_background_blur_fallback,
++                )
++            }
+         )
+     }
+ 

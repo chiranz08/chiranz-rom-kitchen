@@ -1,5 +1,6 @@
 #!/bin/bash
-# Apply roms/<rom>/patches/<project path>/*.patch to a synced tree. Usage: apply.sh <rom>
+# Apply roms/<rom>/patches/<project path>/*.patch to a synced tree, then any post-*.sh steps.
+# Usage: apply.sh <rom>
 # Each patch series records its base commit; a project whose HEAD differs is reported, not forced.
 set -e
 source "$(dirname "$0")/common.sh"
@@ -19,4 +20,10 @@ find . -name '*.patch' -printf '%h\n' | sort -u | sed 's#^\./##' | while read -r
     git -C "$git_dir" checkout -q -B "$(basename "$ROM_KITCHEN")-local"
     git -C "$git_dir" am -q -3 "$PWD/$path"/*.patch
     echo "+ $path: $(ls "$path"/*.patch | wc -l) patch(es)"
+done
+
+# Then post-*.sh steps (changes kept out of patches, e.g. binary deletions); each is idempotent.
+find . -name 'post-*.sh' | sort | while read -r step; do
+    path=$(dirname "${step#./}")
+    (cd "$TREE/$path" && bash "$ROM_KITCHEN/patches/${step#./}") && echo "+ $path: ran $(basename "$step")"
 done

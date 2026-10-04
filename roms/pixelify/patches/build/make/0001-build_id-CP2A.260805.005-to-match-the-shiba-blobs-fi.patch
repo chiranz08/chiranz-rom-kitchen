@@ -1,0 +1,22 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: chiranz <chiranz08@users.noreply.github.com>
+Date: Sat, 3 Oct 2026 18:58:29 +0000
+Subject: [PATCH] build_id: CP2A.260805.005 to match the shiba
+ blobs/fingerprint
+
+---
+ core/build_id.mk | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/core/build_id.mk b/core/build_id.mk
+index 6b55bc1..0baa42b 100644
+--- a/core/build_id.mk
++++ b/core/build_id.mk
+@@ -18,4 +18,4 @@
+ # (like "CRB01").  It must be a single word, and is
+ # capitalized by convention.
+ 
+-BUILD_ID=CP2A.260605.016
++BUILD_ID=CP2A.260805.005
+
+base-commit: 8ec04baba01dda07772c2ba07ac4974c205cec8c

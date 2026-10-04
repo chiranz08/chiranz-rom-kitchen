@@ -1,0 +1,24 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: chiranz <chiranz08@users.noreply.github.com>
+Date: Sun, 4 Oct 2026 16:08:03 +0000
+Subject: [PATCH 3/3] LineageBlackTheme: untinted shade_panel_fg (launcher
+ drawer and shade over blur)
+
+---
+ overlay/rro_packages/BlackTheme/res/values-night/colors.xml | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/overlay/rro_packages/BlackTheme/res/values-night/colors.xml b/overlay/rro_packages/BlackTheme/res/values-night/colors.xml
+index 0bd7081..4d8f903 100644
+--- a/overlay/rro_packages/BlackTheme/res/values-night/colors.xml
++++ b/overlay/rro_packages/BlackTheme/res/values-night/colors.xml
+@@ -37,4 +37,9 @@
+   <color name="system_surface_container_dark">#000000</color>
+   <color name="system_surface_container_high_dark">#171717</color>
+   <color name="system_surface_dim_dark">#000000</color>
++
++  <!-- Pixel Launcher's app drawer (blur on) and the shade over blur use shade_panel_fg, which is
++       system_accent1_800 at 32%. Same alpha, no tint. (Surfaces from the dynamic palette are made
++       black in SystemUI's ThemeOverlayController, which is applied above this overlay.) -->
++  <color name="shade_panel_fg">#52000000</color>
+ </resources>

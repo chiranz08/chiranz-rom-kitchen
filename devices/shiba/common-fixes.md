@@ -9,6 +9,12 @@ Found while finalising Infinity X 17. Format: problem → cause → fix → wher
 - `gxp_logging` spams `traced_producer_socket` denials (~50/10 min) → `dontaudit`.
 - Google face unlock: a ROM's software FaceUnlock takes over the face HAL → `TARGET_FACE_UNLOCK_SUPPORTED := false` and ship crDroid's Google faceunlock.
 
+- StrongBox retry storm on ROMs that set `ro.product.first_api_level` below 33 (e.g. ASCP, Evolution X): the citadel
+  KeyMint HAL then registers only `IKeyMintDevice/strongbox`, but the zuma VINTF manifest declares
+  `IRemotelyProvisionedComponent/strongbox` → servicemanager retries the lazy start ~2/s forever → drop that declaration on
+  those ROMs' branches only (Infinity X keeps 34 and registers it).
+- Smooth Display: the shiba overlay sets `config_defaultPeakRefreshRate` 60 (stock ships it off) → 120.
+
 ## Build identity
 - `BUILD_ID` must match the blobs' fingerprint (CP2A.260805.005 for the pinned blobs), or the build id and fingerprint disagree.
 

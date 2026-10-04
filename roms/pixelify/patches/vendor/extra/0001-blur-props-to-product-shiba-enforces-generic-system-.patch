@@ -1,0 +1,30 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: chiranz <chiranz08@users.noreply.github.com>
+Date: Sat, 3 Oct 2026 19:07:32 +0000
+Subject: [PATCH] blur props to product (shiba enforces generic system
+ partition)
+
+---
+ product.mk | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/product.mk b/product.mk
+index 81fe7c4..c59e3a0 100644
+--- a/product.mk
++++ b/product.mk
+@@ -16,11 +16,11 @@ include $(EXTRA_PATH)/config/bootanimation.mk
+ # Enable blur
+ TARGET_ENABLE_BLUR ?= true
+ ifeq ($(TARGET_ENABLE_BLUR),true)
+-PRODUCT_SYSTEM_PROPERTIES += \
++PRODUCT_PRODUCT_PROPERTIES += \
+     ro.custom.blur.enable=true \
+     ro.surface_flinger.supports_background_blur=1
+ else
+-PRODUCT_SYSTEM_PROPERTIES += \
++PRODUCT_PRODUCT_PROPERTIES += \
+     ro.custom.blur.enable=false \
+     ro.surface_flinger.supports_background_blur=0
+ endif
+
+base-commit: 68b08452c8c3881e739e9486b3aab5a29539a5d0

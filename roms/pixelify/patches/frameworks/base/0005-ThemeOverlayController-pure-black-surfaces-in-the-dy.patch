@@ -1,0 +1,73 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: chiranz <chiranz08@users.noreply.github.com>
+Date: Sun, 4 Oct 2026 16:07:50 +0000
+Subject: [PATCH 5/5] ThemeOverlayController: pure black surfaces in the
+ dynamic palette
+
+The dynamic (wallpaper) palette is applied above the black theme overlay, so with the pure black
+theme on, every surface it defines stayed Monet-tinted (shade panel behind notifications, blur
+layers, dialogs). In black mode, write neutral dark surfaces into it (surface-effect layers keep
+their alpha), and make system_accent2_800 black for Pixel Launcher's app drawer.
+---
+ .../theme/ThemeOverlayController.java         | 46 +++++++++++++++++++
+ 1 file changed, 46 insertions(+)
+
+diff --git a/packages/SystemUI/src/com/android/systemui/theme/ThemeOverlayController.java b/packages/SystemUI/src/com/android/systemui/theme/ThemeOverlayController.java
+index cc231bda8..1a886b8cc 100644
+--- a/packages/SystemUI/src/com/android/systemui/theme/ThemeOverlayController.java
++++ b/packages/SystemUI/src/com/android/systemui/theme/ThemeOverlayController.java
+@@ -743,8 +743,54 @@ public class ThemeOverlayController implements CoreStartable, Dumpable {
+         assignColorsToOverlay(mDynamicOverlay, DynamicColors.getFixedColorsMapped());
+         // Custom Colors
+         assignColorsToOverlay(mDynamicOverlay, DynamicColors.getCustomColorsMapped());
++
++        if (Settings.Secure.getIntForUser(mContext.getContentResolver(),
++                Settings.Secure.BERRY_BLACK_THEME, 0, mUserTracker.getUserId()) == 1) {
++            applyBlackSurfaces(mDynamicOverlay);
++            // Pixel Launcher paints its app drawer (blur off) with this palette tone.
++            mAccentOverlay.setResourceValue("android:color/system_accent2_800",
++                    TYPE_INT_COLOR_ARGB8, Color.BLACK, null);
++        }
+     }
+ 
++    /**
++     * Pure black theme. The dynamic (wallpaper) palette is applied above the black theme overlay,
++     * so every surface it defines stays Monet-tinted: notification cards, QS tiles, dialogs,
++     * launcher and the blur layers. Write neutral dark surfaces into it instead. The surface-effect
++     * layers keep their alpha so blur still shows through.
++     */
++    private void applyBlackSurfaces(FabricatedOverlay overlay) {
++        final List<Pair<String, DynamicColor>> colors =
++                new ArrayList<>(DynamicColors.getAllDynamicColorsMapped());
++        colors.addAll(DynamicColors.getCustomColorsMapped());
++        for (Pair<String, DynamicColor> p : colors) {
++            final Integer rgb = BLACK_SURFACES.get(p.first);
++            if (rgb == null) {
++                continue;
++            }
++            final int alpha =
++                    Color.alpha(p.second.getArgb(mDarkColorScheme.getMaterialScheme()));
++            overlay.setResourceValue("android:color/system_" + p.first + "_dark",
++                    TYPE_INT_COLOR_ARGB8, (alpha << 24) | rgb, null);
++        }
++    }
++
++    private static final Map<String, Integer> BLACK_SURFACES = Map.ofEntries(
++            Map.entry("background", 0x000000),
++            Map.entry("surface", 0x000000),
++            Map.entry("surface_dim", 0x000000),
++            Map.entry("surface_bright", 0x171717),
++            Map.entry("surface_container_lowest", 0x000000),
++            Map.entry("surface_container_low", 0x0A0A0A),
++            Map.entry("surface_container", 0x000000),
++            Map.entry("surface_container_high", 0x171717),
++            Map.entry("surface_container_highest", 0x1E1E1E),
++            Map.entry("surface_variant", 0x1E1E1E),
++            Map.entry("surface_effect_0", 0x000000),
++            Map.entry("surface_effect_1", 0x121212),
++            Map.entry("surface_effect_2", 0xE0E0E0),
++            Map.entry("surface_effect_3", 0xE0E0E0));
++
+     private void assignColorsToOverlay(FabricatedOverlay overlay,
+             List<Pair<String, DynamicColor>> colors) {
+         colors.forEach(p -> {
