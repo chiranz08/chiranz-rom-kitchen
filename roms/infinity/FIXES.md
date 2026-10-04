@@ -26,6 +26,8 @@ Format: error → cause → fix → where.
 - Blur intensity slider: SystemUI already applies BLUR_INTENSITY; port Pixelify's BlurSettings screen → Settings.
 - Nav pill hide: Pixel Launcher ignores LineageSettings NAVIGATION_BAR_HINT → runtime overlay on the launcher toggled from Gesture settings (Evolution X approach) → vendor_chiranz + Settings.
 - Datura firewall (from Pixelify-AOSP): CalyxOS Datura prebuilt, platform-signed, own module names; "Datura Firewall" row in App data usage opens Datura for that UID (Infinity's own per-app switches kept; same NetworkPolicyManager policies) → vendor_chiranz (`CHIRANZ_FIREWALL`) + Settings.
+- Standard Google app set (`CHIRANZ_GAPPS_SET` + Google Phone, Messages, DocumentsUIGoogle, Pixel live/2025 wallpapers in `infinity_shiba.mk`; DocumentsUIGoogle added to the system artifact allowlist). Files icon: DocumentsUIGoogle disables its own launcher activities → `component-override` in system_ext → vendor_chiranz + device/google/shusky.
+- Smooth Display default: shiba overlay sets peak 60 Hz (stock ships it off) → 120 → device/google/shusky.
 - Release signing: fresh key set from the Infinity keys template (template's public releasekey deleted before generating; own subject) → `vendor/infinity-priv/keys` (never committed; encrypted backup kept off-repo). Switching from test-keys needs a data wipe once.
 
 ## Circle to Search — root cause

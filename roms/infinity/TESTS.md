@@ -63,3 +63,11 @@ Device: Pixel 8 (shiba). Clean flash with data wipe. Firmware from the zip: boot
 - PowerInsight, face unlock, fingerprint, calls, Circle to Search: all work.
 - Earlier on this build line, also confirmed by the owner: calls, SMS, Wi-Fi calling, audio routes (speaker, earpiece, wired/Bluetooth), camera video modes.
 - Verdict: everything tested works → final Infinity X build.
+
+## 2026-10-04 — build 18:02 UTC (standard app set, 120 Hz) — clean flash
+
+### Hands-on (owner)
+- Files icon opens Google's file picker; calls and SMS work in Google Phone and Messages; Smooth Display on by default.
+
+### Colours (blur / pure black)
+- Blur on, black off or on: QS and notification background dark and see-through; drawer shows the wallpaper darkened (compositor blur is off in Infinity, `persist.sys.sf.disable_blurs=1`). Blur off, black on: QS, notification background, volume panel, power menu, PIN screen pure black; drawer `system_accent2_800` grey. Owner: no change wanted.

@@ -7,7 +7,7 @@
 
   <!-- LineageOS shusky + zuma (base bf38587 / f085107 on lineage-24.0) plus our infinity-17 commits -->
   <project name="android_device_google_shusky" path="device/google/shusky" remote="chiranz08"
-           revision="3c342eee846ae8116ec906fa568e82f4af090bce" upstream="infinity-17" />
+           revision="af806e48dca111fd1238dea6abe6b01446402f0d" upstream="infinity-17" />
   <project name="android_device_google_zuma" path="device/google/zuma" remote="chiranz08"
            revision="5787291e372734a7d6bfbb53467b3b07d75f32c9" upstream="infinity-17" />
   <project name="LineageOS/android_device_google_shusky-kernels" path="device/google/shusky-kernels" remote="github"
