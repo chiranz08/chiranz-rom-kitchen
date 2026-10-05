@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: chiranz <chiranz08@users.noreply.github.com>
-Date: Mon, 5 Oct 2026 03:38:17 +0000
-Subject: [PATCH 06/13] Display: user-controlled high brightness mode (manual
+Date: Mon, 5 Oct 2026 03:41:47 +0000
+Subject: [PATCH 07/10] Display: user-controlled high brightness mode (manual
  HBM, custom Auto HBM threshold, no time limit)
 
 ---
@@ -9,7 +9,7 @@ Subject: [PATCH 06/13] Display: user-controlled high brightness mode (manual
  1 file changed, 80 insertions(+), 3 deletions(-)
 
 diff --git a/services/core/java/com/android/server/display/HighBrightnessModeController.java b/services/core/java/com/android/server/display/HighBrightnessModeController.java
-index c742640be..46afd02c3 100644
+index e6cd18dd2..aa08f8304 100644
 --- a/services/core/java/com/android/server/display/HighBrightnessModeController.java
 +++ b/services/core/java/com/android/server/display/HighBrightnessModeController.java
 @@ -110,6 +110,20 @@ class HighBrightnessModeController {
@@ -79,9 +79,9 @@ index c742640be..46afd02c3 100644
 +            return !mIsHdrLayerPresent && !mIsBlockedByLowPowerMode;
 +        }
          return !mIsHdrLayerPresent
-                 && (mIsAutoBrightnessEnabled && mIsTimeAvailable && mIsInAllowedAmbientRange
-                 && !mIsBlockedByLowPowerMode);
-@@ -494,7 +524,9 @@ class HighBrightnessModeController {
+                 && ((mIsAutoBrightnessEnabled && mIsTimeAvailable && mIsInAllowedAmbientRange)
+                     || (!mIsAutoBrightnessEnabled && mHbmData.timeWindowMillis == 0))
+@@ -495,7 +525,9 @@ class HighBrightnessModeController {
          final boolean isAllowedWithoutRestrictions = remainingTime >= mHbmData.timeMinMillis;
          final boolean isOnlyAllowedToStayOn = !isAllowedWithoutRestrictions
                  && remainingTime > 0 && mBrightness > mHbmData.transitionPoint;
@@ -92,7 +92,7 @@ index c742640be..46afd02c3 100644
  
          // Calculate the time at which we want to recalculate mIsTimeAvailable in case a lux or
          // brightness change doesn't happen before then.
-@@ -704,6 +736,13 @@ class HighBrightnessModeController {
+@@ -705,6 +737,13 @@ class HighBrightnessModeController {
      private final class SettingsObserver extends ContentObserver {
          private final Uri mLowPowerModeSetting = Settings.Global.getUriFor(
                  Settings.Global.LOW_POWER_MODE);
@@ -106,7 +106,7 @@ index c742640be..46afd02c3 100644
          private boolean mStarted;
  
          SettingsObserver(Handler handler) {
-@@ -713,17 +752,55 @@ class HighBrightnessModeController {
+@@ -714,17 +753,55 @@ class HighBrightnessModeController {
          @Override
          public void onChange(boolean selfChange, Uri uri) {
              updateLowPower();

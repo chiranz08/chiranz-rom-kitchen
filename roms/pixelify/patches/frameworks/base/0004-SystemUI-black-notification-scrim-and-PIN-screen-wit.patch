@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: chiranz <chiranz08@users.noreply.github.com>
 Date: Sun, 4 Oct 2026 14:51:59 +0000
-Subject: [PATCH 4/5] SystemUI: black notification scrim and PIN screen with
+Subject: [PATCH 04/10] SystemUI: black notification scrim and PIN screen with
  the pure black theme
 
 notification_scrim_base and bouncer_fallback_bg are Monet accents (system_accent1_800 at night)

@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: chiranz <chiranz08@users.noreply.github.com>
 Date: Mon, 5 Oct 2026 03:35:34 +0000
-Subject: [PATCH 07/16] Gestures: 'Vibrate on gesture' for tap, lift and
+Subject: [PATCH 07/17] Gestures: 'Vibrate on gesture' for tap, lift and
  double-tap wake (from Pixelify-AOSP)
 
 ---

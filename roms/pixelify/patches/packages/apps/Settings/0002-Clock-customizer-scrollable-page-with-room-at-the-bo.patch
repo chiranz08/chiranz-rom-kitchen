@@ -1,26 +1,27 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: chiranz <chiranz08@users.noreply.github.com>
-Date: Mon, 5 Oct 2026 09:22:05 +0000
-Subject: [PATCH 12/17] Clock customizer: scrollable page with room at the
+Date: Mon, 5 Oct 2026 09:22:14 +0000
+Subject: [PATCH 2/7] Clock customizer: scrollable page with room at the
  bottom; 'See all' gallery of every clock style
 
 ---
- res/values/clock_customizer_strings.xml       |   3 +
+ res/values/clock_gallery_strings.xml          |   6 ++
  .../lockscreen/ClockCustomizerScreen.kt       | 101 +++++++++++++++++-
- 2 files changed, 101 insertions(+), 3 deletions(-)
+ 2 files changed, 104 insertions(+), 3 deletions(-)
+ create mode 100644 res/values/clock_gallery_strings.xml
 
-diff --git a/res/values/clock_customizer_strings.xml b/res/values/clock_customizer_strings.xml
-index 893786c..f5958f4 100644
---- a/res/values/clock_customizer_strings.xml
-+++ b/res/values/clock_customizer_strings.xml
-@@ -22,4 +22,7 @@
-     <string name="lockscreen_custom_clock_aod_anim_title">Custom clock AOD animation</string>
-     <string name="lockscreen_custom_clock_style_title">Custom clock style</string>
-     <string name="lockscreen_custom_clock_wobble_on_charge_title">Wobble on charge</string>
+diff --git a/res/values/clock_gallery_strings.xml b/res/values/clock_gallery_strings.xml
+new file mode 100644
+index 0000000..05d93bf
+--- /dev/null
++++ b/res/values/clock_gallery_strings.xml
+@@ -0,0 +1,6 @@
++<?xml version="1.0" encoding="utf-8"?>
++<resources>
 +    <string name="clock_styles_title">Clock styles</string>
 +    <string name="clock_styles_see_all">See all</string>
 +    <string name="clock_styles_all_title">All clock styles</string>
- </resources>
++</resources>
 diff --git a/src/com/android/settings/lockscreen/ClockCustomizerScreen.kt b/src/com/android/settings/lockscreen/ClockCustomizerScreen.kt
 index ce03f78..0e5d768 100644
 --- a/src/com/android/settings/lockscreen/ClockCustomizerScreen.kt

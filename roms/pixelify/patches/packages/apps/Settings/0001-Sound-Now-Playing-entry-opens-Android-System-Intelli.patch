@@ -1,14 +1,15 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: chiranz <chiranz08@users.noreply.github.com>
-Date: Mon, 5 Oct 2026 03:14:39 +0000
-Subject: [PATCH 06/17] Sound: Now Playing entry (opens Android System
+Date: Mon, 5 Oct 2026 03:42:20 +0000
+Subject: [PATCH 1/7] Sound: Now Playing entry (opens Android System
  Intelligence's or the Now Playing app's settings)
 
 ---
  res/values/now_playing_strings.xml            |  6 ++
  res/xml/sound_settings.xml                    |  9 ++
+ .../settings/notification/SoundSettings.java  |  5 ++
  .../sound/NowPlayingPreferenceController.java | 85 +++++++++++++++++++
- 3 files changed, 100 insertions(+)
+ 4 files changed, 105 insertions(+)
  create mode 100644 res/values/now_playing_strings.xml
  create mode 100644 src/com/android/settings/sound/NowPlayingPreferenceController.java
 
@@ -25,10 +26,10 @@ index 0000000..264367b
 +    <string name="now_playing_settings_summary">Identify songs playing nearby</string>
 +</resources>
 diff --git a/res/xml/sound_settings.xml b/res/xml/sound_settings.xml
-index 5e95002..b84089c 100644
+index 6c4fe6c..c17271d 100644
 --- a/res/xml/sound_settings.xml
 +++ b/res/xml/sound_settings.xml
-@@ -222,6 +222,15 @@
+@@ -258,6 +258,15 @@
              settings:controller="com.android.settings.sound.MediaControlsParentPreferenceController"
              settings:keywords="@string/keywords_media_controls"/>
  
@@ -44,6 +45,22 @@ index 5e95002..b84089c 100644
          <com.android.settingslib.PrimarySwitchPreference
              android:key="gesture_prevent_ringing_sound"
              android:title="@string/gesture_prevent_ringing_sound_title"
+diff --git a/src/com/android/settings/notification/SoundSettings.java b/src/com/android/settings/notification/SoundSettings.java
+index 44380b9..cba4f26 100644
+--- a/src/com/android/settings/notification/SoundSettings.java
++++ b/src/com/android/settings/notification/SoundSettings.java
+@@ -105,6 +105,11 @@ public class SoundSettings extends DashboardFragment implements OnActivityResult
+                 continue;
+             }
+             final String key = pref.getKey();
++            // Keep our own entry (NowPlayingPreferenceController), which hides itself when
++            // Now Playing isn't installed; only ASI's injected tile is filtered here.
++            if ("now_playing_settings".equals(key)) {
++                continue;
++            }
+             if (key != null && (key.equals(KEY_NOW_PLAYING)
+                     || key.contains("AmbientMusic")
+                     || key.contains("ambientmusic")
 diff --git a/src/com/android/settings/sound/NowPlayingPreferenceController.java b/src/com/android/settings/sound/NowPlayingPreferenceController.java
 new file mode 100644
 index 0000000..09bd7f2
@@ -135,3 +152,5 @@ index 0000000..09bd7f2
 +        return null;
 +    }
 +}
+
+base-commit: 47d347e064160accda87ee67ae330e3a7932d9f6

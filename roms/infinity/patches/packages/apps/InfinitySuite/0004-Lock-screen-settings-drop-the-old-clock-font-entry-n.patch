@@ -1,0 +1,35 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: chiranz <chiranz08@users.noreply.github.com>
+Date: Mon, 5 Oct 2026 13:05:54 +0000
+Subject: [PATCH 4/4] Lock screen settings: drop the old clock font entry (now
+ in the clock customizer)
+
+---
+ res/xml/infinity_suite_lockscreen.xml | 14 +-------------
+ 1 file changed, 1 insertion(+), 13 deletions(-)
+
+diff --git a/res/xml/infinity_suite_lockscreen.xml b/res/xml/infinity_suite_lockscreen.xml
+index 8549495..46ef9d4 100644
+--- a/res/xml/infinity_suite_lockscreen.xml
++++ b/res/xml/infinity_suite_lockscreen.xml
+@@ -27,19 +27,7 @@
+             android:key="android.theme.customization.lockscreen_clock_font"
+             android:title="@string/custom_clock_style"
+             android:summary="@string/lockscreen_clock_category_summary"
+-            android:fragment="com.android.settings.lockscreen.CustomClockPreview" />  
+-
+-
+-
+-
+-
+-
+-        <!-- Lockscreen Clock Font style -->
+-        <Preference
+-            android:key="android.theme.customization.lockscreen_clock_font"
+-            android:title="@string/theme_customization_lock_clock_title"
+-            android:summary="@string/theme_customization_lock_clock_summary"
+-            android:fragment="com.infinity.suite.fragments.LockClockFonts"/>
++            android:fragment="com.android.settings.lockscreen.CustomClockPreview" />
+ 
+         <Preference
+             android:key="lockscreen_widgets"

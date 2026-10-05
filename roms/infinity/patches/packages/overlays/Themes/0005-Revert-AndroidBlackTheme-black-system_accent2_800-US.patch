@@ -1,0 +1,23 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: chiranz <chiranz08@users.noreply.github.com>
+Date: Mon, 5 Oct 2026 16:14:54 +0000
+Subject: [PATCH 5/6] Revert "AndroidBlackTheme: black system_accent2_800 (USB
+ mode sheet, drawer with blur off)"
+
+This reverts commit 2ec630b02493a09dd7ed7b5e8c3f57f7f6dacc2b.
+---
+ themes/AndroidBlackTheme/res/values-night/colors.xml | 3 ---
+ 1 file changed, 3 deletions(-)
+
+diff --git a/themes/AndroidBlackTheme/res/values-night/colors.xml b/themes/AndroidBlackTheme/res/values-night/colors.xml
+index 4c233ea..2aae67e 100644
+--- a/themes/AndroidBlackTheme/res/values-night/colors.xml
++++ b/themes/AndroidBlackTheme/res/values-night/colors.xml
+@@ -69,7 +69,4 @@
+     <color name="system_surface_container_low_dark">#000000</color>
+     <color name="system_surface_container_lowest_dark">#000000</color>
+     <color name="system_surface_dim_dark">#000000</color>
+-    <!-- Bottom sheets (USB mode chooser) and Pixel Launcher's app drawer with blur off use this
+-         palette tone; it is a Monet accent. Black with the pure black theme. -->
+-    <color name="system_accent2_800">#000000</color>
+ </resources>

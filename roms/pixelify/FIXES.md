@@ -26,6 +26,11 @@ Format: problem → cause → fix → where.
 - Monet tint with the pure black theme on (panel behind notifications, launcher drawer, USB mode sheet, blur layers): SystemUI's dynamic (wallpaper) palette overlay is applied above the black theme (LineageBlackTheme), so every surface it defines stayed Monet (measured: drawer and USB sheet = `system_accent2_800`, panel = `system_accent1_800` at 50%). In black mode ThemeOverlayController now writes neutral surfaces into the dynamic overlay (surface-effect layers keep their alpha) and makes `system_accent2_800` black; LineageBlackTheme gets an untinted `shade_panel_fg` → frameworks/base, vendor/custom.
 - StrongBox retry storm (~1,300 failed lookups / 10 min, 1–2 s keystore stalls): ASCP sets `ro.product.first_api_level=32` (its own integrity setting, left untouched), so the citadel KeyMint HAL registers only `IKeyMintDevice/strongbox`, but the zuma VINTF manifest declared `IRemotelyProvisionedComponent/strongbox` → declaration removed → device/google/zuma. Verified: 0 lookups afterwards, no crashes.
 - Release signing: fresh ASCP key set from the LineageOS-style keys template (template's public releasekey deleted first) → `vendor/custom-priv/keys` (never committed).
+- Clock customizer: scroll collapses the Settings toolbar with bottom room; Colour/Misc tabs crashed (nested verticalScroll) → fixed; "See all" gallery of mini lock screens with category filters; clock font row (locked for styles with their own font; hidden here since ASCP ships no lockscreen clock-font overlays).
+- Clock style padding: start margin is extra on top of the normal side padding; end padding kept. Style 2 (oos2) follows the clock font with font padding on the big digits.
+- Pixel 8 Pro (husky): ascp_husky product added.
+- Clear Calling (Google Device Connectivity Service) shipped and enabled; Now Playing entry in Sound settings.
+- High brightness mode: manual HBM and Auto HBM threshold page and QS tile (device parts).
 
 ## Left as ASCP ships it
 - Pixel Launcher's app drawer doesn't blur with blur on (the home screen shows faintly through).

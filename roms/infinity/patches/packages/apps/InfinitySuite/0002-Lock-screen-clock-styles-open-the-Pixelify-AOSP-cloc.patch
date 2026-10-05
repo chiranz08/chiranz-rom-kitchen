@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: chiranz <chiranz08@users.noreply.github.com>
 Date: Mon, 5 Oct 2026 06:40:54 +0000
-Subject: [PATCH 2/2] Lock screen clock styles: open the Pixelify-AOSP clock
+Subject: [PATCH 2/4] Lock screen clock styles: open the Pixelify-AOSP clock
  customizer; previews and fonts from Pixelify-AOSP
 
 ---

@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: chiranz <chiranz08@users.noreply.github.com>
 Date: Mon, 5 Oct 2026 06:38:15 +0000
-Subject: [PATCH 07/12] SystemUI: custom lock screen clock styles from
+Subject: [PATCH 07/13] SystemUI: custom lock screen clock styles from
  Pixelify-AOSP (album art colour, AOD animation, gradient controls, wobble on
  charge, start margin)
 

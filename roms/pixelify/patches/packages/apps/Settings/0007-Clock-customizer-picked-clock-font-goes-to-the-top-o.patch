@@ -1,0 +1,42 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: chiranz <chiranz08@users.noreply.github.com>
+Date: Mon, 5 Oct 2026 13:04:02 +0000
+Subject: [PATCH 7/7] Clock customizer: picked clock font goes to the top
+ overlay priority (system fonts also set the clock font) and is saved in the
+ theme selection
+
+---
+ .../lockscreen/ClockCustomizerScreen.kt        | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
+
+diff --git a/src/com/android/settings/lockscreen/ClockCustomizerScreen.kt b/src/com/android/settings/lockscreen/ClockCustomizerScreen.kt
+index 07a891a..30525ed 100644
+--- a/src/com/android/settings/lockscreen/ClockCustomizerScreen.kt
++++ b/src/com/android/settings/lockscreen/ClockCustomizerScreen.kt
+@@ -794,8 +794,26 @@ private fun applyClockFont(context: android.content.Context, packageName: String
+             }
+         } else {
+             om.setEnabledExclusiveInCategory(packageName, android.os.UserHandle.SYSTEM)
++            // System font overlays also set config_clockFontFamily; keep the picked clock font on
++            // top so it wins over them.
++            android.content.om.IOverlayManager.Stub.asInterface(
++                android.os.ServiceManager.getService(android.content.Context.OVERLAY_SERVICE)
++            )?.setHighestPriority(packageName, android.os.UserHandle.USER_SYSTEM)
+         }
+     }
++    // Keep the saved theme selection in step, so a theme re-apply doesn't bring the old font back.
++    runCatching {
++        val cr = context.contentResolver
++        val key = android.provider.Settings.Secure.THEME_CUSTOMIZATION_OVERLAY_PACKAGES
++        val json = android.provider.Settings.Secure.getStringForUser(
++            cr, key, android.os.UserHandle.USER_CURRENT
++        )
++        val obj = if (json.isNullOrEmpty()) org.json.JSONObject() else org.json.JSONObject(json)
++        if (packageName == null) obj.remove(CLOCK_FONT_CATEGORY) else obj.put(CLOCK_FONT_CATEGORY, packageName)
++        android.provider.Settings.Secure.putStringForUser(
++            cr, key, obj.toString(), android.os.UserHandle.USER_CURRENT
++        )
++    }
+ }
+ 
+ /** Row of clock fonts, each drawn in its own face; tapping one applies it (restarts SystemUI). */

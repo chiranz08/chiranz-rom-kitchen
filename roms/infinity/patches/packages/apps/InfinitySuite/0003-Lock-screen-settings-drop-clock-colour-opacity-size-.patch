@@ -1,0 +1,64 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: chiranz <chiranz08@users.noreply.github.com>
+Date: Mon, 5 Oct 2026 13:02:22 +0000
+Subject: [PATCH 3/4] Lock screen settings: drop clock
+ colour/opacity/size/margin entries (now in the clock customizer)
+
+---
+ res/xml/infinity_suite_lockscreen.xml | 43 +++------------------------
+ 1 file changed, 4 insertions(+), 39 deletions(-)
+
+diff --git a/res/xml/infinity_suite_lockscreen.xml b/res/xml/infinity_suite_lockscreen.xml
+index 52c4d9f..8549495 100644
+--- a/res/xml/infinity_suite_lockscreen.xml
++++ b/res/xml/infinity_suite_lockscreen.xml
+@@ -29,45 +29,10 @@
+             android:summary="@string/lockscreen_clock_category_summary"
+             android:fragment="com.android.settings.lockscreen.CustomClockPreview" />  
+ 
+-    <com.infinity.support.preferences.SecureSettingListPreference
+-        android:key="lock_screen_custom_clock_color_mode"
+-        android:title="@string/clock_color_mode_title"
+-        android:entries="@array/clock_color_mode_entries"
+-        android:entryValues="@array/clock_color_mode_values"
+-        android:summary="%s"
+-        android:defaultValue="default" />
+-
+-    <com.infinity.support.colorpicker.ColorPickerPreference
+-        android:key="lock_screen_custom_clock_custom_color"
+-        android:title="@string/custom_color"
+-        android:defaultValue="0xFFFFFFFF" />
+-
+-    <com.infinity.support.preferences.SecureSettingSeekBarPreference
+-        android:key="lock_screen_custom_clock_opacity"
+-        android:title="@string/clock_text_opacity_title"
+-        android:summary="@string/clock_text_opacity_summary"
+-        android:defaultValue="100"
+-	    android:max="100"
+-        settings:min="10" 
+-        settings:units="%" />
+-
+-    <com.infinity.support.preferences.SecureSettingSeekBarPreference
+-        android:key="lock_screen_custom_clock_size_scale"
+-        android:title="@string/clock_size_title"
+-        android:summary="@string/clock_size_summary"
+-        android:defaultValue="100"
+-        android:max="150"
+-        settings:min="50"
+-        settings:units="%" />
+-
+-    <com.infinity.support.preferences.SecureSettingSeekBarPreference
+-        android:key="lock_screen_custom_clock_margin_top"
+-        android:title="@string/custom_clock_frame_margin_top_title"
+-        android:summary="@string/custom_clock_frame_margin_top_summary"
+-        android:defaultValue="15"
+-	    android:max="200"
+-        settings:min="0" 
+-        settings:units="dp" />
++
++
++
++
+ 
+         <!-- Lockscreen Clock Font style -->
+         <Preference

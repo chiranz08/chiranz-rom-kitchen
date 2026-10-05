@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: chiranz <chiranz08@users.noreply.github.com>
-Date: Mon, 5 Oct 2026 03:34:53 +0000
-Subject: [PATCH 04/13] SystemUI: no filled circle behind the lock screen
+Date: Mon, 5 Oct 2026 03:41:32 +0000
+Subject: [PATCH 06/10] SystemUI: no filled circle behind the lock screen
  fingerprint icon, no pill behind the back arrow
 
 ---
@@ -35,20 +35,20 @@ index 8df6afcaa..b786a2452 100644
 +    }
  }
 diff --git a/packages/SystemUI/src/com/android/systemui/navigationbar/gestural/BackPanel.kt b/packages/SystemUI/src/com/android/systemui/navigationbar/gestural/BackPanel.kt
-index 82fb713e4..74910afbd 100644
+index a427bfcc6..5f7a283fa 100644
 --- a/packages/SystemUI/src/com/android/systemui/navigationbar/gestural/BackPanel.kt
 +++ b/packages/SystemUI/src/com/android/systemui/navigationbar/gestural/BackPanel.kt
-@@ -26,6 +26,9 @@ class BackPanel(context: Context, private val latencyTracker: LatencyTracker) :
-         const val ARROW_MODE_STOCK = 0
-         const val ARROW_MODE_FILL = 1
-         const val ARROW_MODE_CUSTOM_PATH = 2
+@@ -17,6 +17,9 @@ import com.android.systemui.navigationbar.gestural.BackPanelController.DelayedOn
+ private const val TAG = "BackPanel"
+ private const val DEBUG = false
+ 
++// Filled pill behind the back gesture arrow (stock); off: the arrow is drawn on its own.
++private const val DRAW_ARROW_BACKGROUND = false
 +
-+        // Filled pill behind the back gesture arrow (stock); off: the arrow is drawn on its own.
-+        private const val DRAW_ARROW_BACKGROUND = false
-     }
+ class BackPanel(context: Context, private val latencyTracker: LatencyTracker) : View(context) {
  
      var arrowsPointLeft = false
-@@ -500,10 +503,13 @@ class BackPanel(context: Context, private val latencyTracker: LatencyTracker) :
+@@ -504,10 +507,13 @@ class BackPanel(context: Context, private val latencyTracker: LatencyTracker) :
                      topRight = farCorner,
                      bottomRight = farCorner,
                  )

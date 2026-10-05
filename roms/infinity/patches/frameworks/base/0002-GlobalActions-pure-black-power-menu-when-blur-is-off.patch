@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: chiranz <chiranz08@users.noreply.github.com>
 Date: Sun, 4 Oct 2026 06:53:18 +0000
-Subject: [PATCH 02/12] GlobalActions: pure black power menu when blur is off
+Subject: [PATCH 02/13] GlobalActions: pure black power menu when blur is off
 
 The non-blur fallback background is system_accent1_800, which the pure black theme
 overlay does not replace, so the power menu stayed Monet-tinted. Use black when the

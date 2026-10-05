@@ -1,19 +1,19 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: chiranz <chiranz08@users.noreply.github.com>
-Date: Mon, 5 Oct 2026 11:21:23 +0000
-Subject: [PATCH 16/17] Clock customizer: lock the font picker for clock styles
+Date: Mon, 5 Oct 2026 11:21:33 +0000
+Subject: [PATCH 6/7] Clock customizer: lock the font picker for clock styles
  that use their own font
 
 ---
- res/values/clock_customizer_strings.xml       |  1 +
+ res/values/clock_gallery_strings.xml          |  1 +
  .../lockscreen/ClockCustomizerScreen.kt       | 76 ++++++++++++++++---
  2 files changed, 68 insertions(+), 9 deletions(-)
 
-diff --git a/res/values/clock_customizer_strings.xml b/res/values/clock_customizer_strings.xml
-index 413e4f1..8a9bff7 100644
---- a/res/values/clock_customizer_strings.xml
-+++ b/res/values/clock_customizer_strings.xml
-@@ -35,4 +35,5 @@
+diff --git a/res/values/clock_gallery_strings.xml b/res/values/clock_gallery_strings.xml
+index f5c1d72..d3c1794 100644
+--- a/res/values/clock_gallery_strings.xml
++++ b/res/values/clock_gallery_strings.xml
+@@ -13,4 +13,5 @@
      <string name="clock_category_bold">Big &amp; bold</string>
      <string name="clock_category_cards">Cards &amp; widgets</string>
      <string name="clock_category_other">Other</string>

@@ -1,25 +1,25 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: chiranz <chiranz08@users.noreply.github.com>
 Date: Mon, 5 Oct 2026 10:07:08 +0000
-Subject: [PATCH 13/17] Clock customizer: scroll collapses the toolbar, more
+Subject: [PATCH 3/7] Clock customizer: scroll collapses the toolbar, more
  bottom room; gallery of mini lock screens (2 columns, wallpaper, true-scale
  clock, style number)
 
 ---
- res/values/clock_customizer_strings.xml       |   2 +
+ res/values/clock_gallery_strings.xml          |   2 +
  .../lockscreen/ClockCustomizerScreen.kt       | 173 ++++++++++++++++--
  2 files changed, 156 insertions(+), 19 deletions(-)
 
-diff --git a/res/values/clock_customizer_strings.xml b/res/values/clock_customizer_strings.xml
-index f5958f4..48902b1 100644
---- a/res/values/clock_customizer_strings.xml
-+++ b/res/values/clock_customizer_strings.xml
-@@ -25,4 +25,6 @@
+diff --git a/res/values/clock_gallery_strings.xml b/res/values/clock_gallery_strings.xml
+index 05d93bf..4042f70 100644
+--- a/res/values/clock_gallery_strings.xml
++++ b/res/values/clock_gallery_strings.xml
+@@ -3,4 +3,6 @@
      <string name="clock_styles_title">Clock styles</string>
      <string name="clock_styles_see_all">See all</string>
      <string name="clock_styles_all_title">All clock styles</string>
 +    <string name="clock_styles_all_summary">Tap a style to use it</string>
-+    <string name="clock_style_number">Style <xliff:g id="number">%1$d</xliff:g></string>
++    <string name="clock_style_number">Style %1$d</string>
  </resources>
 diff --git a/src/com/android/settings/lockscreen/ClockCustomizerScreen.kt b/src/com/android/settings/lockscreen/ClockCustomizerScreen.kt
 index 0e5d768..42ed343 100644

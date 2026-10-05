@@ -1,22 +1,22 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: chiranz <chiranz08@users.noreply.github.com>
 Date: Mon, 5 Oct 2026 11:04:42 +0000
-Subject: [PATCH 15/17] Clock customizer: clock font picker (fonts drawn in
- their own face); gallery category filters
+Subject: [PATCH 5/7] Clock customizer: clock font picker (fonts drawn in their
+ own face); gallery category filters
 
 ---
- res/values/clock_customizer_strings.xml       |   8 +
+ res/values/clock_gallery_strings.xml          |   8 +
  .../lockscreen/ClockCustomizerScreen.kt       | 187 +++++++++++++++++-
  2 files changed, 194 insertions(+), 1 deletion(-)
 
-diff --git a/res/values/clock_customizer_strings.xml b/res/values/clock_customizer_strings.xml
-index 48902b1..413e4f1 100644
---- a/res/values/clock_customizer_strings.xml
-+++ b/res/values/clock_customizer_strings.xml
-@@ -27,4 +27,12 @@
+diff --git a/res/values/clock_gallery_strings.xml b/res/values/clock_gallery_strings.xml
+index 4042f70..f5c1d72 100644
+--- a/res/values/clock_gallery_strings.xml
++++ b/res/values/clock_gallery_strings.xml
+@@ -5,4 +5,12 @@
      <string name="clock_styles_all_title">All clock styles</string>
      <string name="clock_styles_all_summary">Tap a style to use it</string>
-     <string name="clock_style_number">Style <xliff:g id="number">%1$d</xliff:g></string>
+     <string name="clock_style_number">Style %1$d</string>
 +    <string name="clock_font_title">Clock font</string>
 +    <string name="clock_category_all">All</string>
 +    <string name="clock_category_ios">iOS</string>
