@@ -71,3 +71,13 @@ Device: Pixel 8 (shiba). Clean flash with data wipe. Firmware from the zip: boot
 
 ### Colours (blur / pure black)
 - Blur on, black off or on: QS and notification background dark and see-through; drawer shows the wallpaper darkened (compositor blur is off in Infinity, `persist.sys.sf.disable_blurs=1`). Blur off, black on: QS, notification background, volume panel, power menu, PIN screen pure black; drawer `system_accent2_800` grey. Owner: no change wanted.
+
+## 2026-10-05 — shiba build 04:04 UTC — clean flash
+
+### Hands-on (owner)
+- Clear Calling switch in Sound & vibration; Now Playing entry opens its settings.
+- Clock font applies with a custom clock face on; iOS clock font in the picker.
+- No circle behind the lock screen fingerprint icon; back arrow has no pill.
+- "Vibrate on gesture" for tap / lift wake works.
+- High brightness mode page and HBM tile work.
+- Verdict: all new items work.

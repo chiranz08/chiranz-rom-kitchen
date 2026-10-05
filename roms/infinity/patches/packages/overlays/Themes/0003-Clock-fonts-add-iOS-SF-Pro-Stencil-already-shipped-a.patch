@@ -1,0 +1,164 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: chiranz <chiranz08@users.noreply.github.com>
+Date: Mon, 5 Oct 2026 03:22:55 +0000
+Subject: [PATCH 3/3] Clock fonts: add iOS (SF Pro Stencil, already shipped as
+ the ios family); point SFPro-SemiboldStencil at it
+
+---
+ clockfonts/ClockFontIosOverlay/Android.bp     | 20 +++++++++++
+ .../ClockFontIosOverlay/AndroidManifest.xml   | 33 +++++++++++++++++++
+ .../ClockFontIosOverlay/res/values/config.xml | 22 +++++++++++++
+ .../res/values/strings.xml                    | 21 ++++++++++++
+ prebuilt/product/etc/fonts_customization.xml  |  2 ++
+ themes.mk                                     |  1 +
+ 6 files changed, 99 insertions(+)
+ create mode 100644 clockfonts/ClockFontIosOverlay/Android.bp
+ create mode 100644 clockfonts/ClockFontIosOverlay/AndroidManifest.xml
+ create mode 100644 clockfonts/ClockFontIosOverlay/res/values/config.xml
+ create mode 100644 clockfonts/ClockFontIosOverlay/res/values/strings.xml
+
+diff --git a/clockfonts/ClockFontIosOverlay/Android.bp b/clockfonts/ClockFontIosOverlay/Android.bp
+new file mode 100644
+index 0000000..76bd9a6
+--- /dev/null
++++ b/clockfonts/ClockFontIosOverlay/Android.bp
+@@ -0,0 +1,20 @@
++// Copyright (C) 2016-2022 crDroid Android Project
++//
++// Licensed under the Apache License, Version 2.0 (the "License");
++// you may not use this file except in compliance with the License.
++// You may obtain a copy of the License at
++//
++//      http://www.apache.org/licenses/LICENSE-2.0
++//
++// Unless required by applicable law or agreed to in writing, software
++// distributed under the License is distributed on an "AS IS" BASIS,
++// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++// See the License for the specific language governing permissions and
++// limitations under the License.
++
++runtime_resource_overlay {
++    name: "ClockFontIosOverlay",
++    product_specific: true,
++    sdk_version: "current",
++    theme: "ClockFontIos",
++}
+diff --git a/clockfonts/ClockFontIosOverlay/AndroidManifest.xml b/clockfonts/ClockFontIosOverlay/AndroidManifest.xml
+new file mode 100644
+index 0000000..76d7c11
+--- /dev/null
++++ b/clockfonts/ClockFontIosOverlay/AndroidManifest.xml
+@@ -0,0 +1,33 @@
++<!--
++    Copyright (c) 2020-2022, crDroid Android Project
++
++    Licensed under the Apache License, Version 2.0 (the "License");
++    you may not use this file except in compliance with the License.
++    You may obtain a copy of the License at
++
++        http://www.apache.org/licenses/LICENSE-2.0
++
++    Unless required by applicable law or agreed to in writing, software
++    distributed under the License is distributed on an "AS IS" BASIS,
++    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++    See the License for the specific language governing permissions and
++    limitations under the License.
++-->
++<manifest xmlns:android="http://schemas.android.com/apk/res/android"
++    package="com.android.theme.lockscreen_clock_font.ios"
++    android:versionCode="1"
++    android:versionName="1.0">
++
++    <overlay
++        android:targetPackage="android"
++        android:category="android.theme.customization.lockscreen_clock_font"
++        android:priority="1" />
++
++    <application
++        android:hasCode="false"
++        android:label="@string/font_ios_overlay">
++        <meta-data
++            android:name="android.theme.customization.REQUIRED_SYSTEM_FONTS"
++            android:value="ios" />
++    </application>
++</manifest>
+diff --git a/clockfonts/ClockFontIosOverlay/res/values/config.xml b/clockfonts/ClockFontIosOverlay/res/values/config.xml
+new file mode 100644
+index 0000000..32d5761
+--- /dev/null
++++ b/clockfonts/ClockFontIosOverlay/res/values/config.xml
+@@ -0,0 +1,22 @@
++<?xml version="1.0" encoding="utf-8"?>
++<!--
++/**
++ * Copyright (c) 2020-2022, crDroid Android Project
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++-->
++<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
++    <!-- Name of the font family to use in the default lockscreen clock -->
++    <string name="config_clockFontFamily" translatable="false">ios</string>
++</resources>
+diff --git a/clockfonts/ClockFontIosOverlay/res/values/strings.xml b/clockfonts/ClockFontIosOverlay/res/values/strings.xml
+new file mode 100644
+index 0000000..2c092b7
+--- /dev/null
++++ b/clockfonts/ClockFontIosOverlay/res/values/strings.xml
+@@ -0,0 +1,21 @@
++<!--
++/**
++ * Copyright (c) 2020-2022, The Android Open Source Project
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++-->
++<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
++    <!-- Headline / Body font Lato overlay -->
++    <string name="font_ios_overlay" translatable="false">iOS</string>
++</resources>
+diff --git a/prebuilt/product/etc/fonts_customization.xml b/prebuilt/product/etc/fonts_customization.xml
+index a2f6359..bf3d9a0 100644
+--- a/prebuilt/product/etc/fonts_customization.xml
++++ b/prebuilt/product/etc/fonts_customization.xml
+@@ -620,6 +620,8 @@
+     <family customizationType="new-named-family" name="ios">
+         <font weight="300" style="normal">ios.ttf</font>
+     </family>
++    <!-- SFPro-SemiboldStencil clock font: same SF Pro Stencil face -->
++    <alias name="sanfrancisco-sb-stencil-clock" to="ios" />
+     
+     <!-- Hercules -->
+     <family customizationType="new-named-family" name="hercules">
+diff --git a/themes.mk b/themes.mk
+index bef934f..5a089d1 100644
+--- a/themes.mk
++++ b/themes.mk
+@@ -129,6 +129,7 @@ PRODUCT_PACKAGES += \
+     ClockFontKaramuruhOverlay \
+     ClockFontKingthingsOverlay \
+     ClockFontLMSCliffordOverlay \
++    ClockFontIosOverlay \
+     ClockFontLatoOverlay \
+     ClockFontLinotteOverlay \
+     ClockFontLittleBunnyOverlay \

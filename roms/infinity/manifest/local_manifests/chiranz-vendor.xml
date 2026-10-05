@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- vendor_chiranz: the features layer (Pixel Launcher, JamesDSP, PowerInsight sepolicy, Datura, Google setup, standard app set).
+<!-- vendor_chiranz: the features layer (Pixel Launcher, JamesDSP, PowerInsight sepolicy, Datura, Google setup, standard app set, Clear Calling).
      Private repo (it carries prebuilt APKs); needs access to chiranz08/vendor_chiranz over SSH. -->
 <manifest>
   <remote name="chiranz08-ssh" fetch="ssh://git@github.com/chiranz08" />
   <project name="vendor_chiranz" path="vendor/chiranz" remote="chiranz08-ssh"
-           revision="d7220b13ba9364e2f0c6e84d5195655b38731ce3" upstream="main" />
+           revision="601db10124cfb659bed27d9b78fc96c57d1ac76b" upstream="main" />
 </manifest>

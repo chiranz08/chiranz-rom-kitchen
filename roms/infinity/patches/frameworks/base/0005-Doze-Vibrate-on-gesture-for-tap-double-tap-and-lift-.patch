@@ -1,0 +1,292 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: chiranz <chiranz08@users.noreply.github.com>
+Date: Mon, 5 Oct 2026 03:36:42 +0000
+Subject: [PATCH 5/6] Doze: 'Vibrate on gesture' for tap, double-tap and lift
+ wake (from Pixelify-AOSP)
+
+---
+ .../display/AmbientDisplayConfiguration.java  | 18 ++++++++
+ core/java/android/provider/Settings.java      | 18 ++++++++
+ .../settings/backup/SecureSettings.java       |  3 ++
+ .../validators/SecureSettingsValidators.java  |  3 ++
+ .../android/systemui/doze/DozeTriggers.java   | 46 ++++++++++++++++++-
+ .../systemui/shade/PulsingGestureListener.kt  | 37 ++++++++++++++-
+ 6 files changed, 123 insertions(+), 2 deletions(-)
+
+diff --git a/core/java/android/hardware/display/AmbientDisplayConfiguration.java b/core/java/android/hardware/display/AmbientDisplayConfiguration.java
+index 7e59f7faa..3d1bc2271 100644
+--- a/core/java/android/hardware/display/AmbientDisplayConfiguration.java
++++ b/core/java/android/hardware/display/AmbientDisplayConfiguration.java
+@@ -156,6 +156,24 @@ public class AmbientDisplayConfiguration {
+         return boolSettingDefaultOff(Settings.Secure.PULSE_ON_NEW_TRACKS, user);
+     }
+ 
++    /** @hide */
++    public boolean pickupGestureVibrate(int user) {
++        return boolSettingDefaultOff(Settings.Secure.DOZE_PICK_UP_GESTURE_VIBRATE, user)
++                && pickupGestureEnabled(user);
++    }
++
++    /** @hide */
++    public boolean tapGestureVibrate(int user) {
++        return boolSettingDefaultOff(Settings.Secure.DOZE_TAP_GESTURE_VIBRATE, user)
++                && tapGestureEnabled(user);
++    }
++
++    /** @hide */
++    public boolean doubleTapGestureVibrate(int user) {
++        return boolSettingDefaultOff(Settings.Secure.DOZE_DOUBLE_TAP_GESTURE_VIBRATE, user)
++                && doubleTapGestureEnabled(user);
++    }
++
+     /** @hide */
+     public boolean pickupGestureEnabled(int user) {
+         return boolSetting(Settings.Secure.DOZE_PICK_UP_GESTURE, user,
+diff --git a/core/java/android/provider/Settings.java b/core/java/android/provider/Settings.java
+index a48a7763f..278a497d8 100644
+--- a/core/java/android/provider/Settings.java
++++ b/core/java/android/provider/Settings.java
+@@ -12051,6 +12051,24 @@ public final class Settings {
+         @Readable
+         public static final String DOZE_TAP_SCREEN_GESTURE = "doze_tap_gesture";
+ 
++        /**
++         * Whether to vibrate when the tap gesture wakes the screen
++         * @hide
++         */
++        public static final String DOZE_TAP_GESTURE_VIBRATE = "doze_tap_gesture_vibrate";
++
++        /**
++         * Whether to vibrate when the pick up gesture wakes the screen
++         * @hide
++         */
++        public static final String DOZE_PICK_UP_GESTURE_VIBRATE = "doze_pick_up_gesture_vibrate";
++
++        /**
++         * Whether to vibrate when the double tap gesture wakes the screen
++         * @hide
++         */
++        public static final String DOZE_DOUBLE_TAP_GESTURE_VIBRATE = "doze_double_tap_gesture_vibrate";
++
+         /**
+          * Gesture that wakes up the display, showing some version of the lock screen.
+          * @hide
+diff --git a/packages/SettingsProvider/src/android/provider/settings/backup/SecureSettings.java b/packages/SettingsProvider/src/android/provider/settings/backup/SecureSettings.java
+index b43cf070c..14427ba0b 100644
+--- a/packages/SettingsProvider/src/android/provider/settings/backup/SecureSettings.java
++++ b/packages/SettingsProvider/src/android/provider/settings/backup/SecureSettings.java
+@@ -138,6 +138,9 @@ public class SecureSettings {
+         Settings.Secure.DOZE_PICK_UP_GESTURE,
+         Settings.Secure.DOZE_DOUBLE_TAP_GESTURE,
+         Settings.Secure.DOZE_TAP_SCREEN_GESTURE,
++        Settings.Secure.DOZE_TAP_GESTURE_VIBRATE,
++        Settings.Secure.DOZE_PICK_UP_GESTURE_VIBRATE,
++        Settings.Secure.DOZE_DOUBLE_TAP_GESTURE_VIBRATE,
+         Settings.Secure.NFC_PAYMENT_DEFAULT_COMPONENT,
+         Settings.Secure.AUTOMATIC_STORAGE_MANAGER_DAYS_TO_RETAIN,
+         Settings.Secure.FACE_UNLOCK_KEYGUARD_ENABLED,
+diff --git a/packages/SettingsProvider/src/android/provider/settings/validators/SecureSettingsValidators.java b/packages/SettingsProvider/src/android/provider/settings/validators/SecureSettingsValidators.java
+index f2ad543cd..5d3bc61ef 100644
+--- a/packages/SettingsProvider/src/android/provider/settings/validators/SecureSettingsValidators.java
++++ b/packages/SettingsProvider/src/android/provider/settings/validators/SecureSettingsValidators.java
+@@ -206,6 +206,9 @@ public class SecureSettingsValidators {
+         VALIDATORS.put(Secure.DOZE_PICK_UP_GESTURE, BOOLEAN_VALIDATOR);
+         VALIDATORS.put(Secure.DOZE_DOUBLE_TAP_GESTURE, BOOLEAN_VALIDATOR);
+         VALIDATORS.put(Secure.DOZE_TAP_SCREEN_GESTURE, BOOLEAN_VALIDATOR);
++        VALIDATORS.put(Secure.DOZE_TAP_GESTURE_VIBRATE, BOOLEAN_VALIDATOR);
++        VALIDATORS.put(Secure.DOZE_PICK_UP_GESTURE_VIBRATE, BOOLEAN_VALIDATOR);
++        VALIDATORS.put(Secure.DOZE_DOUBLE_TAP_GESTURE_VIBRATE, BOOLEAN_VALIDATOR);
+         VALIDATORS.put(Secure.DOZE_WAKE_LOCK_SCREEN_GESTURE, BOOLEAN_VALIDATOR);
+         VALIDATORS.put(Secure.DOZE_WAKE_DISPLAY_GESTURE, BOOLEAN_VALIDATOR);
+         VALIDATORS.put(Secure.DOZE_QUICK_PICKUP_GESTURE, BOOLEAN_VALIDATOR);
+diff --git a/packages/SystemUI/src/com/android/systemui/doze/DozeTriggers.java b/packages/SystemUI/src/com/android/systemui/doze/DozeTriggers.java
+index a3137adbc..2f9637a46 100644
+--- a/packages/SystemUI/src/com/android/systemui/doze/DozeTriggers.java
++++ b/packages/SystemUI/src/com/android/systemui/doze/DozeTriggers.java
+@@ -29,6 +29,9 @@ import android.content.Intent;
+ import android.content.IntentFilter;
+ import android.hardware.display.AmbientDisplayConfiguration;
+ import android.os.SystemClock;
++import android.os.VibrationAttributes;
++import android.os.VibrationEffect;
++import android.os.Vibrator;
+ import android.text.format.Formatter;
+ import android.util.IndentingPrintWriter;
+ import android.util.Log;
+@@ -48,6 +51,7 @@ import com.android.systemui.doze.dagger.DozeScope;
+ import com.android.systemui.keyguard.shared.model.FingerprintAuthenticationStatus;
+ import com.android.systemui.log.SessionTracker;
+ import com.android.systemui.settings.UserTracker;
++import com.android.systemui.statusbar.VibratorHelper;
+ import com.android.systemui.statusbar.phone.DozeParameters;
+ import com.android.systemui.statusbar.policy.DevicePostureController;
+ import com.android.systemui.statusbar.policy.KeyguardStateController;
+@@ -107,6 +111,8 @@ public class DozeTriggers implements DozeMachine.Part {
+     private final UserTracker mUserTracker;
+     private final SelectedUserInteractor mSelectedUserInteractor;
+     private final UiEventLogger mUiEventLogger;
++    private final VibratorHelper mVibratorHelper;
++    private final Vibrator mVibrator;
+ 
+     private long mNotificationPulseTime;
+     private Runnable mAodInterruptRunnable;
+@@ -210,7 +216,8 @@ public class DozeTriggers implements DozeMachine.Part {
+             KeyguardStateController keyguardStateController,
+             DevicePostureController devicePostureController,
+             UserTracker userTracker,
+-            SelectedUserInteractor selectedUserInteractor) {
++            SelectedUserInteractor selectedUserInteractor,
++            VibratorHelper vibratorHelper) {
+         mContext = context;
+         mDozeHost = dozeHost;
+         mConfig = config;
+@@ -232,6 +239,8 @@ public class DozeTriggers implements DozeMachine.Part {
+         mKeyguardStateController = keyguardStateController;
+         mUserTracker = userTracker;
+         mSelectedUserInteractor = selectedUserInteractor;
++        mVibratorHelper = vibratorHelper;
++        mVibrator = mContext.getSystemService(Vibrator.class);
+     }
+ 
+     @Override
+@@ -408,6 +417,9 @@ public class DozeTriggers implements DozeMachine.Part {
+     }
+ 
+     private void gentleWakeUp(@DozeLog.Reason int reason) {
++        if (shouldVibrate(reason)) {
++            wakeVibrate();
++        }
+         if (shouldTryToPulse(reason)) {
+             requestPulse(reason, true, null);
+             return;
+@@ -424,6 +436,38 @@ public class DozeTriggers implements DozeMachine.Part {
+         mMachine.wakeUp(reason);
+     }
+ 
++    /** "Vibrate on gesture" for tap, double-tap and lift (from Pixelify-AOSP). */
++    private boolean shouldVibrate(@DozeLog.Reason int reason) {
++        if (mVibratorHelper == null || !mVibratorHelper.hasVibrator()) {
++            return false;
++        }
++        final int user = mUserTracker.getUserId();
++        switch (reason) {
++            case DozeLog.REASON_SENSOR_PICKUP:
++                return mConfig.pickupGestureVibrate(user);
++            case DozeLog.REASON_SENSOR_DOUBLE_TAP:
++                return mConfig.doubleTapGestureVibrate(user);
++            case DozeLog.REASON_SENSOR_TAP:
++                return mConfig.tapGestureVibrate(user);
++            default:
++                return false;
++        }
++    }
++
++    private void wakeVibrate() {
++        VibrationEffect effect = VibrationEffect.createWaveform(new long[] { 0, 100 }, -1);
++        if (mVibrator != null && mVibrator.areAllEffectsSupported(VibrationEffect.EFFECT_CLICK)
++                == Vibrator.VIBRATION_EFFECT_SUPPORT_YES) {
++            effect = VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK);
++        }
++        final VibrationAttributes attrs = new VibrationAttributes.Builder()
++                .setUsage(VibrationAttributes.USAGE_HARDWARE_FEEDBACK)
++                .setFlags(VibrationAttributes.FLAG_BYPASS_INTERRUPTION_POLICY
++                        | VibrationAttributes.FLAG_BYPASS_USER_VIBRATION_INTENSITY_OFF)
++                .build();
++        mVibratorHelper.vibrate(effect, attrs);
++    }
++
+     private void onProximityFar(boolean far) {
+         // Proximity checks are asynchronous and the user might have interacted with the phone
+         // when a new event is arriving. This means that a state transition might have happened
+diff --git a/packages/SystemUI/src/com/android/systemui/shade/PulsingGestureListener.kt b/packages/SystemUI/src/com/android/systemui/shade/PulsingGestureListener.kt
+index fc53866ce..395bb30a1 100644
+--- a/packages/SystemUI/src/com/android/systemui/shade/PulsingGestureListener.kt
++++ b/packages/SystemUI/src/com/android/systemui/shade/PulsingGestureListener.kt
+@@ -16,9 +16,13 @@
+ 
+ package com.android.systemui.shade
+ 
++import android.content.Context
+ import android.graphics.Point
+ import android.hardware.display.AmbientDisplayConfiguration
+ import android.os.PowerManager
++import android.os.VibrationAttributes
++import android.os.VibrationEffect
++import android.os.Vibrator
+ import android.provider.Settings
+ import android.view.GestureDetector
+ import android.view.MotionEvent
+@@ -50,6 +54,7 @@ import javax.inject.Inject
+ class PulsingGestureListener
+ @Inject
+ constructor(
++    context: Context,
+     private val falsingManager: FalsingManager,
+     private val dockManager: DockManager,
+     private val powerInteractor: PowerInteractor,
+@@ -57,13 +62,14 @@ constructor(
+     private val statusBarStateController: StatusBarStateController,
+     private val shadeLogger: ShadeLogger,
+     private val dozeInteractor: DozeInteractor,
+-    userTracker: UserTracker,
++    private val userTracker: UserTracker,
+     tunerService: TunerService,
+     dumpManager: DumpManager
+ ) : GestureDetector.SimpleOnGestureListener(), Dumpable {
+     private var doubleTapEnabled = false
+     private var singleTapEnabled = false
+     private var doubleTapEnabledNative = false
++    private val vibrator: Vibrator? = context.getSystemService(Vibrator::class.java)
+ 
+     init {
+         val tunable = Tunable { key: String?, value: String? ->
+@@ -102,6 +108,9 @@ constructor(
+             if (proximityIsNotNear && isNotAFalseTap) {
+                 shadeLogger.d("Single tap handled, requesting centralSurfaces.wakeUpIfDozing")
+                 dozeInteractor.setLastTapToWakePosition(Point(x.toInt(), y.toInt()))
++                if (ambientDisplayConfiguration.tapGestureVibrate(userTracker.userId)) {
++                    wakeVibrate()
++                }
+                 powerInteractor.wakeUpIfDozing("PULSING_SINGLE_TAP", PowerManager.WAKE_REASON_TAP)
+             }
+ 
+@@ -133,6 +142,15 @@ constructor(
+                 !falsingManager.isProximityNear &&
+                 !falsingManager.isFalseDoubleTap
+         ) {
++            val shouldVibrate =
++                if (doubleTapEnabled || doubleTapEnabledNative) {
++                    ambientDisplayConfiguration.doubleTapGestureVibrate(userTracker.userId)
++                } else {
++                    ambientDisplayConfiguration.tapGestureVibrate(userTracker.userId)
++                }
++            if (shouldVibrate) {
++                wakeVibrate()
++            }
+             powerInteractor.wakeUpIfDozing("PULSING_DOUBLE_TAP", PowerManager.WAKE_REASON_TAP)
+             return true
+         }
+@@ -140,6 +158,23 @@ constructor(
+         return false
+     }
+ 
++    /** "Vibrate on gesture" (from Pixelify-AOSP). */
++    private fun wakeVibrate() {
++        val vibrator = vibrator ?: return
++        if (!vibrator.hasVibrator()) return
++        var effect = VibrationEffect.createWaveform(longArrayOf(0, 100), -1)
++        if (
++            vibrator.areAllEffectsSupported(VibrationEffect.EFFECT_CLICK) ==
++                Vibrator.VIBRATION_EFFECT_SUPPORT_YES
++        ) {
++            effect = VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK)
++        }
++        vibrator.vibrate(
++            effect,
++            VibrationAttributes.createForUsage(VibrationAttributes.USAGE_HARDWARE_FEEDBACK),
++        )
++    }
++
+     override fun dump(pw: PrintWriter, args: Array<out String>) {
+         pw.println("singleTapEnabled=$singleTapEnabled")
+         pw.println("doubleTapEnabled=$doubleTapEnabled")

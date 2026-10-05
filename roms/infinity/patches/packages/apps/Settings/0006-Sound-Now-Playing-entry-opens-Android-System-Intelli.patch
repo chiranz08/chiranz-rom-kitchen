@@ -1,0 +1,137 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: chiranz <chiranz08@users.noreply.github.com>
+Date: Mon, 5 Oct 2026 03:14:39 +0000
+Subject: [PATCH 6/7] Sound: Now Playing entry (opens Android System
+ Intelligence's or the Now Playing app's settings)
+
+---
+ res/values/now_playing_strings.xml            |  6 ++
+ res/xml/sound_settings.xml                    |  9 ++
+ .../sound/NowPlayingPreferenceController.java | 85 +++++++++++++++++++
+ 3 files changed, 100 insertions(+)
+ create mode 100644 res/values/now_playing_strings.xml
+ create mode 100644 src/com/android/settings/sound/NowPlayingPreferenceController.java
+
+diff --git a/res/values/now_playing_strings.xml b/res/values/now_playing_strings.xml
+new file mode 100644
+index 0000000..264367b
+--- /dev/null
++++ b/res/values/now_playing_strings.xml
+@@ -0,0 +1,6 @@
++<?xml version="1.0" encoding="utf-8"?>
++<resources>
++    <!-- Now Playing entry in Sound settings -->
++    <string name="now_playing_settings_title">Now Playing</string>
++    <string name="now_playing_settings_summary">Identify songs playing nearby</string>
++</resources>
+diff --git a/res/xml/sound_settings.xml b/res/xml/sound_settings.xml
+index 5e95002..b84089c 100644
+--- a/res/xml/sound_settings.xml
++++ b/res/xml/sound_settings.xml
+@@ -222,6 +222,15 @@
+             settings:controller="com.android.settings.sound.MediaControlsParentPreferenceController"
+             settings:keywords="@string/keywords_media_controls"/>
+ 
++        <!-- Now Playing: Android System Intelligence disables its own settings tile after a Play
++             update, so link straight to an activity that stays enabled. -->
++        <Preference
++            android:key="now_playing_settings"
++            android:title="@string/now_playing_settings_title"
++            android:summary="@string/now_playing_settings_summary"
++            android:order="-99"
++            settings:controller="com.android.settings.sound.NowPlayingPreferenceController"/>
++
+         <com.android.settingslib.PrimarySwitchPreference
+             android:key="gesture_prevent_ringing_sound"
+             android:title="@string/gesture_prevent_ringing_sound_title"
+diff --git a/src/com/android/settings/sound/NowPlayingPreferenceController.java b/src/com/android/settings/sound/NowPlayingPreferenceController.java
+new file mode 100644
+index 0000000..09bd7f2
+--- /dev/null
++++ b/src/com/android/settings/sound/NowPlayingPreferenceController.java
+@@ -0,0 +1,85 @@
++/*
++ * Copyright (C) 2026 chiranz
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *      http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package com.android.settings.sound;
++
++import android.content.ComponentName;
++import android.content.Context;
++import android.content.Intent;
++import android.content.pm.PackageManager;
++import android.content.pm.ResolveInfo;
++
++import androidx.preference.Preference;
++
++import com.android.settings.core.BasePreferenceController;
++
++import java.util.List;
++
++/**
++ * Settings entry for Now Playing.
++ *
++ * Android System Intelligence disables its own AmbientMusicSettingsActivity and
++ * AmbientMusicNotificationsSettingsActivity after a Play update, so the entry Google's own
++ * Settings would show disappears while the feature keeps working. AOSP/Lineage Settings has
++ * no entry of its own, so this one targets the activity that stays enabled, and falls back to
++ * the split Now Playing app's own settings screen.
++ */
++public class NowPlayingPreferenceController extends BasePreferenceController {
++
++    private static final ComponentName[] TARGETS = new ComponentName[] {
++            new ComponentName("com.google.android.as",
++                    "com.google.intelligence.sense.ambientmusic.NowPlayingAmbientMusicSettingsActivity"),
++            new ComponentName("com.google.android.apps.pixel.nowplaying",
++                    "com.google.android.apps.pixel.nowplaying.settings.MainSettingsActivity"),
++    };
++
++    public NowPlayingPreferenceController(Context context, String key) {
++        super(context, key);
++    }
++
++    @Override
++    public int getAvailabilityStatus() {
++        return resolveTarget() != null ? AVAILABLE : CONDITIONALLY_UNAVAILABLE;
++    }
++
++    @Override
++    public boolean handlePreferenceTreeClick(Preference preference) {
++        if (!getPreferenceKey().equals(preference.getKey())) {
++            return super.handlePreferenceTreeClick(preference);
++        }
++        final ComponentName target = resolveTarget();
++        if (target == null) {
++            return false;
++        }
++        preference.getContext().startActivity(new Intent()
++                .setComponent(target)
++                .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
++        return true;
++    }
++
++    /** First target that is installed and enabled, or null when Now Playing isn't available. */
++    private ComponentName resolveTarget() {
++        final PackageManager pm = mContext.getPackageManager();
++        for (ComponentName cn : TARGETS) {
++            final List<ResolveInfo> infos =
++                    pm.queryIntentActivities(new Intent().setComponent(cn), 0 /* flags */);
++            if (infos != null && !infos.isEmpty()) {
++                return cn;
++            }
++        }
++        return null;
++    }
++}

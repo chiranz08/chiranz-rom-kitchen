@@ -1,0 +1,68 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: chiranz <chiranz08@users.noreply.github.com>
+Date: Mon, 5 Oct 2026 03:34:53 +0000
+Subject: [PATCH 4/6] SystemUI: no filled circle behind the lock screen
+ fingerprint icon, no pill behind the back arrow
+
+---
+ .../ui/viewmodel/DeviceEntryBackgroundViewModel.kt |  7 ++++++-
+ .../systemui/navigationbar/gestural/BackPanel.kt   | 14 ++++++++++----
+ 2 files changed, 16 insertions(+), 5 deletions(-)
+
+diff --git a/packages/SystemUI/src/com/android/systemui/keyguard/ui/viewmodel/DeviceEntryBackgroundViewModel.kt b/packages/SystemUI/src/com/android/systemui/keyguard/ui/viewmodel/DeviceEntryBackgroundViewModel.kt
+index 8df6afcaa..b786a2452 100644
+--- a/packages/SystemUI/src/com/android/systemui/keyguard/ui/viewmodel/DeviceEntryBackgroundViewModel.kt
++++ b/packages/SystemUI/src/com/android/systemui/keyguard/ui/viewmodel/DeviceEntryBackgroundViewModel.kt
+@@ -81,9 +81,10 @@ constructor(
+     windowRootViewBlurInteractor: WindowRootViewBlurInteractor,
+     private val sceneInteractor: Lazy<SceneInteractor>,
+ ) {
++    // No filled circle behind the lock screen fingerprint icon: the icon is drawn on its own.
+     val color: Flow<Int> =
+         deviceEntryIconViewModel.useBackgroundProtection.flatMapLatest { useBackground ->
+-            if (useBackground) {
++            if (useBackground && SHOW_BACKGROUND_PROTECTION) {
+                 if (!enableLockscreenBlur()) {
+                     configurationInteractor.onAnyConfigurationChange
+                         .map {
+@@ -190,4 +191,8 @@ constructor(
+                 }
+         }
+     }
++
++    private companion object {
++        const val SHOW_BACKGROUND_PROTECTION = false
++    }
+ }
+diff --git a/packages/SystemUI/src/com/android/systemui/navigationbar/gestural/BackPanel.kt b/packages/SystemUI/src/com/android/systemui/navigationbar/gestural/BackPanel.kt
+index 82fb713e4..74910afbd 100644
+--- a/packages/SystemUI/src/com/android/systemui/navigationbar/gestural/BackPanel.kt
++++ b/packages/SystemUI/src/com/android/systemui/navigationbar/gestural/BackPanel.kt
+@@ -26,6 +26,9 @@ class BackPanel(context: Context, private val latencyTracker: LatencyTracker) :
+         const val ARROW_MODE_STOCK = 0
+         const val ARROW_MODE_FILL = 1
+         const val ARROW_MODE_CUSTOM_PATH = 2
++
++        // Filled pill behind the back gesture arrow (stock); off: the arrow is drawn on its own.
++        private const val DRAW_ARROW_BACKGROUND = false
+     }
+ 
+     var arrowsPointLeft = false
+@@ -500,10 +503,13 @@ class BackPanel(context: Context, private val latencyTracker: LatencyTracker) :
+                     topRight = farCorner,
+                     bottomRight = farCorner,
+                 )
+-        canvas.drawPath(
+-            arrowBackground,
+-            arrowBackgroundPaint.apply { alpha = (255 * backgroundAlpha.pos).toInt() },
+-        )
++        // Arrow only: no filled pill behind the back gesture arrow.
++        if (DRAW_ARROW_BACKGROUND) {
++            canvas.drawPath(
++                arrowBackground,
++                arrowBackgroundPaint.apply { alpha = (255 * backgroundAlpha.pos).toInt() },
++            )
++        }
+ 
+         val dx = arrowLength.pos
+         val dy = arrowHeight.pos

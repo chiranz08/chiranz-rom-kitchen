@@ -1,0 +1,164 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: chiranz <chiranz08@users.noreply.github.com>
+Date: Mon, 5 Oct 2026 03:38:17 +0000
+Subject: [PATCH 6/6] Display: user-controlled high brightness mode (manual
+ HBM, custom Auto HBM threshold, no time limit)
+
+---
+ .../display/HighBrightnessModeController.java | 83 ++++++++++++++++++-
+ 1 file changed, 80 insertions(+), 3 deletions(-)
+
+diff --git a/services/core/java/com/android/server/display/HighBrightnessModeController.java b/services/core/java/com/android/server/display/HighBrightnessModeController.java
+index c742640be..46afd02c3 100644
+--- a/services/core/java/com/android/server/display/HighBrightnessModeController.java
++++ b/services/core/java/com/android/server/display/HighBrightnessModeController.java
+@@ -110,6 +110,20 @@ class HighBrightnessModeController {
+     private float mMaxDesiredHdrSdrRatio = DEFAULT_MAX_DESIRED_HDR_SDR_RATIO;
+     private boolean mForceHbmChangeCallback = false;
+     private boolean mIsBlockedByLowPowerMode = false;
++
++    // User-controlled HBM (Settings.Secure, written by GoogleParts).
++    //  hbm_force            manual HBM: allow the HBM brightness range at any time
++    //  auto_hbm             use a custom lux threshold instead of the config's minimumLux
++    //  auto_hbm_threshold   that threshold (lux, > 0)
++    //  auto_hbm_no_time_limit  ignore the config's timeMaxSecs/timeWindowSecs cap
++    static final String SETTING_HBM_FORCE = "hbm_force";
++    static final String SETTING_AUTO_HBM = "auto_hbm";
++    static final String SETTING_AUTO_HBM_THRESHOLD = "auto_hbm_threshold";
++    static final String SETTING_AUTO_HBM_NO_TIME_LIMIT = "auto_hbm_no_time_limit";
++    private boolean mHbmForced = false;
++    private boolean mAutoHbmCustom = false;
++    private float mAutoHbmThresholdLux = 0f;
++    private boolean mAutoHbmNoTimeLimit = false;
+     private int mWidth;
+     private int mHeight;
+     private float mAmbientLux;
+@@ -183,6 +197,14 @@ class HighBrightnessModeController {
+         recalculateTimeAllowance();
+     }
+ 
++    /** Config minimumLux unless the user set a custom Auto HBM threshold. */
++    private float getEffectiveMinimumLux() {
++        if (mAutoHbmCustom && mAutoHbmThresholdLux > 0) {
++            return mAutoHbmThresholdLux;
++        }
++        return mHbmData.minimumLux;
++    }
++
+     float getCurrentBrightnessMin() {
+         return mBrightnessMin;
+     }
+@@ -230,8 +252,9 @@ class HighBrightnessModeController {
+             return;
+         }
+ 
+-        final boolean isHighLux = (ambientLux >= mHbmData.minimumLux);
+-        Slog.d(TAG, "onAmbientLuxChange: " + ambientLux + "/" + mHbmData.minimumLux
++        final float minimumLux = getEffectiveMinimumLux();
++        final boolean isHighLux = (ambientLux >= minimumLux);
++        Slog.d(TAG, "onAmbientLuxChange: " + ambientLux + "/" + minimumLux
+                 + ", IsHighLux: " + isHighLux);
+         if (isHighLux != mIsInAllowedAmbientRange) {
+             mIsInAllowedAmbientRange = isHighLux;
+@@ -352,6 +375,9 @@ class HighBrightnessModeController {
+         pw.println("  remainingTime=" + calculateRemainingTime(mClock.uptimeMillis()));
+         pw.println("  mIsTimeAvailable= " + mIsTimeAvailable);
+         pw.println("  mIsBlockedByLowPowerMode=" + mIsBlockedByLowPowerMode);
++        pw.println("  user: mHbmForced=" + mHbmForced + " mAutoHbmCustom=" + mAutoHbmCustom
++                + " mAutoHbmThresholdLux=" + mAutoHbmThresholdLux
++                + " mAutoHbmNoTimeLimit=" + mAutoHbmNoTimeLimit);
+         pw.println("  width*height=" + mWidth + "*" + mHeight);
+         pw.println("  mHdrBoostDisabled=" + mHdrBoostDisabled);
+ 
+@@ -401,6 +427,10 @@ class HighBrightnessModeController {
+             // Assumed that HBM is being handled externally.
+             return mHbmData != null && mBrightness > mHbmData.transitionPoint;
+         }
++        if (mHbmForced) {
++            // Manual HBM: ignore ambient light and the time cap; HDR/low-power still win.
++            return !mIsHdrLayerPresent && !mIsBlockedByLowPowerMode;
++        }
+         return !mIsHdrLayerPresent
+                 && (mIsAutoBrightnessEnabled && mIsTimeAvailable && mIsInAllowedAmbientRange
+                 && !mIsBlockedByLowPowerMode);
+@@ -494,7 +524,9 @@ class HighBrightnessModeController {
+         final boolean isAllowedWithoutRestrictions = remainingTime >= mHbmData.timeMinMillis;
+         final boolean isOnlyAllowedToStayOn = !isAllowedWithoutRestrictions
+                 && remainingTime > 0 && mBrightness > mHbmData.transitionPoint;
+-        mIsTimeAvailable = isAllowedWithoutRestrictions || isOnlyAllowedToStayOn;
++        mIsTimeAvailable = isAllowedWithoutRestrictions || isOnlyAllowedToStayOn
++                // User opted out of the per-window HBM time cap
++                || mHbmForced || (mAutoHbmCustom && mAutoHbmNoTimeLimit);
+ 
+         // Calculate the time at which we want to recalculate mIsTimeAvailable in case a lux or
+         // brightness change doesn't happen before then.
+@@ -704,6 +736,13 @@ class HighBrightnessModeController {
+     private final class SettingsObserver extends ContentObserver {
+         private final Uri mLowPowerModeSetting = Settings.Global.getUriFor(
+                 Settings.Global.LOW_POWER_MODE);
++        // User HBM settings
++        private final Uri[] mHbmSettings = new Uri[] {
++                Settings.Secure.getUriFor(SETTING_HBM_FORCE),
++                Settings.Secure.getUriFor(SETTING_AUTO_HBM),
++                Settings.Secure.getUriFor(SETTING_AUTO_HBM_THRESHOLD),
++                Settings.Secure.getUriFor(SETTING_AUTO_HBM_NO_TIME_LIMIT),
++        };
+         private boolean mStarted;
+ 
+         SettingsObserver(Handler handler) {
+@@ -713,17 +752,55 @@ class HighBrightnessModeController {
+         @Override
+         public void onChange(boolean selfChange, Uri uri) {
+             updateLowPower();
++            updateUserHbmSettings();
+         }
+ 
+         void startObserving() {
+             if (!mStarted) {
+                 mContext.getContentResolver().registerContentObserver(mLowPowerModeSetting,
+                         false /*notifyForDescendants*/, this, UserHandle.USER_ALL);
++                for (Uri uri : mHbmSettings) {
++                    mContext.getContentResolver().registerContentObserver(uri,
++                            false /*notifyForDescendants*/, this, UserHandle.USER_ALL);
++                }
+                 mStarted = true;
+                 updateLowPower();
++                updateUserHbmSettings();
+             }
+         }
+ 
++        /** Re-read the user HBM settings and re-evaluate the HBM state. */
++        private void updateUserHbmSettings() {
++            final android.content.ContentResolver cr = mContext.getContentResolver();
++            final boolean forced = Settings.Secure.getIntForUser(cr, SETTING_HBM_FORCE, 0,
++                    UserHandle.USER_CURRENT) != 0;
++            final boolean custom = Settings.Secure.getIntForUser(cr, SETTING_AUTO_HBM, 0,
++                    UserHandle.USER_CURRENT) != 0;
++            final float threshold = Settings.Secure.getIntForUser(cr, SETTING_AUTO_HBM_THRESHOLD,
++                    0, UserHandle.USER_CURRENT);
++            final boolean noLimit = Settings.Secure.getIntForUser(cr,
++                    SETTING_AUTO_HBM_NO_TIME_LIMIT, 0, UserHandle.USER_CURRENT) != 0;
++            if (forced == mHbmForced && custom == mAutoHbmCustom
++                    && threshold == mAutoHbmThresholdLux && noLimit == mAutoHbmNoTimeLimit) {
++                return;
++            }
++            Slog.d(TAG, "User HBM settings: force=" + forced + " auto=" + custom
++                    + " threshold=" + threshold + " noTimeLimit=" + noLimit);
++            mHbmForced = forced;
++            mAutoHbmCustom = custom;
++            mAutoHbmThresholdLux = threshold;
++            mAutoHbmNoTimeLimit = noLimit;
++            if (!hbmControllerEnabled()) {
++                return;
++            }
++            // Re-apply the (possibly new) lux threshold to the last known ambient value.
++            if (mIsAutoBrightnessEnabled) {
++                mIsInAllowedAmbientRange = mAmbientLux >= getEffectiveMinimumLux();
++            }
++            recalculateTimeAllowance();
++            updateHbmMode();
++        }
++
+         void stopObserving() {
+             mIsBlockedByLowPowerMode = false;
+             if (mStarted) {

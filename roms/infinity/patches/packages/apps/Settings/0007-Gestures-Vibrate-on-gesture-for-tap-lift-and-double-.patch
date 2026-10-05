@@ -1,0 +1,71 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: chiranz <chiranz08@users.noreply.github.com>
+Date: Mon, 5 Oct 2026 03:35:34 +0000
+Subject: [PATCH 7/7] Gestures: 'Vibrate on gesture' for tap, lift and
+ double-tap wake (from Pixelify-AOSP)
+
+---
+ res/values/doze_vibrate_strings.xml     | 6 ++++++
+ res/xml/double_tap_screen_settings.xml  | 6 ++++++
+ res/xml/pick_up_gesture_settings.xml    | 6 ++++++
+ res/xml/tap_screen_gesture_settings.xml | 6 ++++++
+ 4 files changed, 24 insertions(+)
+ create mode 100644 res/values/doze_vibrate_strings.xml
+
+diff --git a/res/values/doze_vibrate_strings.xml b/res/values/doze_vibrate_strings.xml
+new file mode 100644
+index 0000000..4e94153
+--- /dev/null
++++ b/res/values/doze_vibrate_strings.xml
+@@ -0,0 +1,6 @@
++<?xml version="1.0" encoding="utf-8"?>
++<resources>
++    <!-- Haptic on tap / lift / double-tap wake (from Pixelify-AOSP) -->
++    <string name="doze_gesture_vibrate_title">Vibrate on gesture</string>
++    <string name="doze_gesture_vibrate_summary">Vibrate when a successful wake gesture is detected</string>
++</resources>
+diff --git a/res/xml/double_tap_screen_settings.xml b/res/xml/double_tap_screen_settings.xml
+index 3382ad6..e1007f3 100644
+--- a/res/xml/double_tap_screen_settings.xml
++++ b/res/xml/double_tap_screen_settings.xml
+@@ -40,4 +40,10 @@
+         android:dependency="gesture_double_tap_screen"
+         app:controller="com.android.settings.gestures.DozePulseOnDoubleTapExtPreferenceController" />
+ 
++    <com.infinity.support.preferences.SecureSettingSwitchPreference
++        android:key="doze_double_tap_gesture_vibrate"
++        android:defaultValue="false"
++        android:title="@string/doze_gesture_vibrate_title"
++        android:summary="@string/doze_gesture_vibrate_summary"
++        android:dependency="gesture_double_tap_screen" />
+ </PreferenceScreen>
+diff --git a/res/xml/pick_up_gesture_settings.xml b/res/xml/pick_up_gesture_settings.xml
+index 3d886c9..e656d52 100644
+--- a/res/xml/pick_up_gesture_settings.xml
++++ b/res/xml/pick_up_gesture_settings.xml
+@@ -43,4 +43,10 @@
+         android:dependency="gesture_pick_up"
+         app:controller="com.android.settings.gestures.DozePulseOnPickupPreferenceController" />
+ 
++    <com.infinity.support.preferences.SecureSettingSwitchPreference
++        android:key="doze_pick_up_gesture_vibrate"
++        android:defaultValue="false"
++        android:title="@string/doze_gesture_vibrate_title"
++        android:summary="@string/doze_gesture_vibrate_summary"
++        android:dependency="gesture_pick_up" />
+ </PreferenceScreen>
+diff --git a/res/xml/tap_screen_gesture_settings.xml b/res/xml/tap_screen_gesture_settings.xml
+index 42c5716..3bacbc5 100644
+--- a/res/xml/tap_screen_gesture_settings.xml
++++ b/res/xml/tap_screen_gesture_settings.xml
+@@ -42,4 +42,10 @@
+         android:dependency="gesture_tap"
+         app:controller="com.android.settings.gestures.DozePulseOnSingleTapPreferenceController" />
+ 
++    <com.infinity.support.preferences.SecureSettingSwitchPreference
++        android:key="doze_tap_gesture_vibrate"
++        android:defaultValue="false"
++        android:title="@string/doze_gesture_vibrate_title"
++        android:summary="@string/doze_gesture_vibrate_summary"
++        android:dependency="gesture_tap" />
+ </PreferenceScreen>

@@ -1,0 +1,28 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: chiranz <chiranz08@users.noreply.github.com>
+Date: Mon, 5 Oct 2026 03:15:37 +0000
+Subject: [PATCH] LockClockFonts: apply the font without switching off the
+ custom clock face
+
+---
+ src/com/infinity/suite/fragments/LockClockFonts.java | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/src/com/infinity/suite/fragments/LockClockFonts.java b/src/com/infinity/suite/fragments/LockClockFonts.java
+index d106e33..cef490c 100644
+--- a/src/com/infinity/suite/fragments/LockClockFonts.java
++++ b/src/com/infinity/suite/fragments/LockClockFonts.java
+@@ -162,8 +162,9 @@ public class LockClockFonts extends SettingsPreferenceFragment {
+         Button applyButton = view.findViewById(R.id.apply_button);
+         applyButton.setOnClickListener(v -> {
+             if (mSelectedPkg != null) {
+-                Settings.Secure.putIntForUser(getContext().getContentResolver(),
+-                    Settings.Secure.LOCK_SCREEN_CUSTOM_CLOCK_FACE, 0, UserHandle.USER_CURRENT);
++                // Keep the current clock style: custom clock faces that use
++                // config_clockFontFamily pick the font up too (resetting the face to 0 made
++                // the font apply only to the default clock).
+                 int selectedPosition = mPkgs.indexOf(mSelectedPkg);
+                 enableOverlays(selectedPosition);
+                 mAppliedPkg = mSelectedPkg;
+
+base-commit: d96319fb39bd455414f053f9c775ea57558724d6

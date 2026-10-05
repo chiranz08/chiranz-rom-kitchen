@@ -28,6 +28,14 @@ Format: error → cause → fix → where.
 - Datura firewall (from Pixelify-AOSP): CalyxOS Datura prebuilt, platform-signed, own module names; "Datura Firewall" row in App data usage opens Datura for that UID (Infinity's own per-app switches kept; same NetworkPolicyManager policies) → vendor_chiranz (`CHIRANZ_FIREWALL`) + Settings.
 - Standard Google app set (`CHIRANZ_GAPPS_SET` + Google Phone, Messages, DocumentsUIGoogle, Pixel live/2025 wallpapers in `infinity_shiba.mk`; DocumentsUIGoogle added to the system artifact allowlist). Files icon: DocumentsUIGoogle disables its own launcher activities → `component-override` in system_ext → vendor_chiranz + device/google/shusky.
 - Smooth Display default: shiba overlay sets peak 60 Hz (stock ships it off) → 120 → device/google/shusky.
+- Clear Calling missing from Sound settings: Google's Device Connectivity Service (`com.google.android.apps.pixel.dcservice`) isn't in Infinity's GApps → prebuilt + privapp/default permissions (`CHIRANZ_CLEAR_CALLING`); it injects its own switch → vendor_chiranz.
+- Now Playing missing from Sound settings: Android System Intelligence disables its own settings activity after a Play update → own entry that opens ASI's `NowPlayingAmbientMusicSettingsActivity` (or the split app's settings), hidden when neither resolves → Settings.
+- Clock fonts never reached custom clock faces: the InfinitySuite font picker reset `LOCK_SCREEN_CUSTOM_CLOCK_FACE` to 0 on apply → keep the face (25 of 94 faces use `config_clockFontFamily`) → InfinitySuite.
+- iOS clock font: `ios.ttf` / family `ios` already shipped, no clock-font overlay used it; `SFPro-SemiboldStencil` pointed at an undefined family → `ClockFontIosOverlay` + alias `sanfrancisco-sb-stencil-clock` → `ios` → packages/overlays/Themes.
+- Lock screen fingerprint icon / back arrow: filled "background protection" circle and the back-arrow pill removed → SystemUI DeviceEntryBackgroundViewModel, BackPanel.
+- "Vibrate on gesture" for tap / lift / double-tap wake (from Pixelify-AOSP): 3 hidden Secure settings, AmbientDisplayConfiguration helpers, DozeTriggers + PulsingGestureListener haptic, switches on the three gesture pages → frameworks/base + Settings.
+- High brightness mode: HighBrightnessModeController honours `hbm_force`, `auto_hbm`, `auto_hbm_threshold`, `auto_hbm_no_time_limit`; GoogleParts page (Settings → Display) and QS tile write them → frameworks/base + device/google/zuma parts.
+- Pixel 8 Pro: `infinity_husky` product (screen 1344×2992, husky fingerprint), husky blobs with the same AICore/DeviceIntelligence duplicates dropped, Aperture RRO only without GCam → device/google/shusky, vendor/google/husky.
 - Release signing: fresh key set from the Infinity keys template (template's public releasekey deleted before generating; own subject) → `vendor/infinity-priv/keys` (never committed; encrypted backup kept off-repo). Switching from test-keys needs a data wipe once.
 
 ## Circle to Search — root cause

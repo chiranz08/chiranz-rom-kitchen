@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Pixel 8 (shiba) for Project Infinity X 17. There is no official Infinity tree, so:
+<!-- Pixel 8 (shiba) and Pixel 8 Pro (husky) for Project Infinity X 17. There is no official Infinity tree, so:
      LineageOS lineage-24.0 device/SoC/kernel trees (our forks, branch infinity-17) + TheMuppets blobs.
      Every project pinned to an exact commit. -->
 <manifest>
@@ -7,14 +7,17 @@
 
   <!-- LineageOS shusky + zuma (base bf38587 / f085107 on lineage-24.0) plus our infinity-17 commits -->
   <project name="android_device_google_shusky" path="device/google/shusky" remote="chiranz08"
-           revision="af806e48dca111fd1238dea6abe6b01446402f0d" upstream="infinity-17" />
+           revision="edb2e9e74c9feff8fd14ecc6fa48f09b9bcf1fdd" upstream="infinity-17" />
   <project name="android_device_google_zuma" path="device/google/zuma" remote="chiranz08"
-           revision="5787291e372734a7d6bfbb53467b3b07d75f32c9" upstream="infinity-17" />
+           revision="1603da34fb3a627b05b903932212c9bc7f3b41c0" upstream="infinity-17" />
   <project name="LineageOS/android_device_google_shusky-kernels" path="device/google/shusky-kernels" remote="github"
            revision="cd4a90f656c18677b6171cef35c5b5573ed537ca" upstream="lineage-24.0" clone-depth="1" />
   <!-- Blobs: patches/vendor/google/shiba is applied after sync -->
   <project name="TheMuppets/proprietary_vendor_google_shiba" path="vendor/google/shiba" remote="github"
            revision="06afa342d2bdeec74bf0b73251f37965c761cb1c" upstream="lineage-24.0" clone-depth="1" />
+  <!-- Pixel 8 Pro (husky) blobs, same CP2A.260805.005 release: patches/vendor/google/husky -->
+  <project name="TheMuppets/proprietary_vendor_google_husky" path="vendor/google/husky" remote="github"
+           revision="7085ddc01630fdfed802c5900db1b1b6a42cd90c" upstream="lineage-24.0" clone-depth="1" />
   <!-- Google face unlock enrolment (replaces the ROM's software face unlock) -->
   <project name="crdroidandroid/proprietary_vendor_google_faceunlock" path="vendor/google/faceunlock" remote="gitlab"
            revision="f0bae3a20b09a5f4d9403d611a6c751ec13b81ef" upstream="17.0" clone-depth="1" />
