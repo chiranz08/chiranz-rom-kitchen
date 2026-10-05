@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: chiranz <chiranz08@users.noreply.github.com>
 Date: Mon, 5 Oct 2026 10:06:04 +0000
-Subject: [PATCH 12/13] Clock style oos2: font padding on the big digits so any
+Subject: [PATCH 12/14] Clock style oos2: font padding on the big digits so any
  clock font keeps its spacing
 
 ---

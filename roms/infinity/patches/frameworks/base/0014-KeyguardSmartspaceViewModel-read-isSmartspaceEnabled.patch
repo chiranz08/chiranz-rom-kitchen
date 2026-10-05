@@ -1,0 +1,35 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: chiranz <chiranz08@users.noreply.github.com>
+Date: Mon, 5 Oct 2026 16:46:47 +0000
+Subject: [PATCH 14/14] KeyguardSmartspaceViewModel: read isSmartspaceEnabled
+ live (fixes SystemUI crash after turning smartspace off)
+
+---
+ .../keyguard/ui/viewmodel/KeyguardSmartspaceViewModel.kt  | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/packages/SystemUI/src/com/android/systemui/keyguard/ui/viewmodel/KeyguardSmartspaceViewModel.kt b/packages/SystemUI/src/com/android/systemui/keyguard/ui/viewmodel/KeyguardSmartspaceViewModel.kt
+index 59d1efbb1..794350466 100644
+--- a/packages/SystemUI/src/com/android/systemui/keyguard/ui/viewmodel/KeyguardSmartspaceViewModel.kt
++++ b/packages/SystemUI/src/com/android/systemui/keyguard/ui/viewmodel/KeyguardSmartspaceViewModel.kt
+@@ -39,14 +39,18 @@ class KeyguardSmartspaceViewModel
+ @Inject
+ constructor(
+     @Application applicationScope: CoroutineScope,
+-    smartspaceController: LockscreenSmartspaceController,
++    private val smartspaceController: LockscreenSmartspaceController,
+     keyguardClockViewModel: KeyguardClockViewModel,
+     smartspaceInteractor: KeyguardSmartspaceInteractor,
+     shadeModeInteractor: ShadeModeInteractor,
+     keyguardInteractor: KeyguardInteractor,
+ ) {
+     /** Whether the smartspace section is available in the build. */
+-    val isSmartspaceEnabled: Boolean = smartspaceController.isEnabled
++    // Read live: here isEnabled follows the smartspace and custom clock settings, which change at
++    // runtime (clock customizer). A value captured once let the lock screen build the smartspace
++    // view after it was turned off ("Cannot build view when not enabled").
++    val isSmartspaceEnabled: Boolean
++        get() = smartspaceController.isEnabled
+ 
+     /** Whether the weather area is available and enabled. */
+     val isWeatherEnabled: Flow<Boolean> = smartspaceInteractor.isWeatherEnabled
