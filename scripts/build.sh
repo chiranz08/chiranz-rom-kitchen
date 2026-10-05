@@ -14,4 +14,7 @@ m "$MAKE_TARGET" -j"$JOBS" || { echo "== BUILD FAILED"; exit 1; }
 ZIP=$(find "$OUT" -maxdepth 1 -name '*.zip' -newermt "@$START" ! -name '*target_files*' ! -name '*-ota-*' | head -1)
 [ -n "$ZIP" ] || { echo "== no new zip in $OUT"; exit 1; }
 mkdir -p "$RELEASE_DIR"
-cp -v "$ZIP" "$RELEASE_DIR/" && (cd "$RELEASE_DIR" && sha256sum "$(basename "$ZIP")" | tee -a SHA256SUMS)
+# Release name ends with the build start time (UTC) = the build date shown in About phone.
+STAMP=$(date -u -d "@$START" +%Y%m%d-%H%M)
+NAME="$(basename "$ZIP" .zip | sed -E 's/-[0-9]{8}-[0-9]{4}$//')-${STAMP}.zip"
+cp -v "$ZIP" "$RELEASE_DIR/$NAME" && (cd "$RELEASE_DIR" && sha256sum "$NAME" | tee -a SHA256SUMS)
