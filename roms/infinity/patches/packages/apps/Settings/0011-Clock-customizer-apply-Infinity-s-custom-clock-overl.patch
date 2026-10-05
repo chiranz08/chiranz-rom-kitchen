@@ -1,0 +1,72 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: chiranz <chiranz08@users.noreply.github.com>
+Date: Mon, 5 Oct 2026 08:38:16 +0000
+Subject: [PATCH 11/16] Clock customizer: apply Infinity's custom clock
+ overlays (hide stock clock and smartspace date, centred offset)
+
+---
+ .../lockscreen/ClockCustomizerState.kt        | 37 +++++++++++++++++++
+ 1 file changed, 37 insertions(+)
+
+diff --git a/src/com/android/settings/lockscreen/ClockCustomizerState.kt b/src/com/android/settings/lockscreen/ClockCustomizerState.kt
+index 94d11f7..cd08666 100644
+--- a/src/com/android/settings/lockscreen/ClockCustomizerState.kt
++++ b/src/com/android/settings/lockscreen/ClockCustomizerState.kt
+@@ -8,6 +8,7 @@ package com.android.settings.lockscreen
+ import android.content.Context
+ import android.os.UserHandle
+ import android.provider.Settings
++import com.android.internal.util.infinity.ThemeUtils
+ 
+ data class ClockCustomizerState(
+     val style: Int = 0,
+@@ -120,6 +121,41 @@ data class ClockCustomizerState(
+             )
+         }
+ 
++        // Clock styles centred on the screen (Infinity's list, mapped to this picker's numbering);
++        // they need the smartspace offset overlay.
++        private val CENTER_CLOCKS = intArrayOf(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 29, 34, 45, 61, 62, 63, 84, 85, 90, 91, 92)
++
++        /**
++         * What Infinity's own clock picker did on apply: with a custom clock, hide the stock clock and
++         * the smartspace date (otherwise the date moves up into the status bar), and offset the
++         * smartspace for centred clocks.
++         */
++        private fun applyInfinityClockOverlays(context: Context, style: Int) {
++            val custom = style != 0
++            val theme = ThemeUtils(context)
++            theme.setOverlayEnabled(
++                "android.theme.customization.hideclock",
++                if (custom) "com.android.systemui.clocks.hideclock" else "android",
++                "android",
++            )
++            theme.setOverlayEnabled(
++                "android.theme.customization.smartspace",
++                if (custom) "com.android.systemui.hide.smartspace" else "com.android.systemui",
++                "com.android.systemui",
++            )
++            theme.setOverlayEnabled(
++                "android.theme.customization.smartspace_offset",
++                if (custom && CENTER_CLOCKS.contains(style))
++                    "com.android.systemui.smartspace_offset.smartspace"
++                else "com.android.systemui",
++                "com.android.systemui",
++            )
++            Settings.Secure.putIntForUser(
++                context.contentResolver, Settings.Secure.LOCKSCREEN_SMARTSPACE_ENABLED,
++                if (custom) 0 else 1, UserHandle.USER_CURRENT,
++            )
++        }
++
+         fun save(context: Context, state: ClockCustomizerState) {
+             val cr = context.contentResolver
+ 
+@@ -132,6 +168,7 @@ data class ClockCustomizerState(
+             Settings.System.putIntForUser(
+                 cr, Settings.System.LS_CLOCK_HIDE, if (state.style != 0) 1 else 0, UserHandle.USER_CURRENT
+             )
++            applyInfinityClockOverlays(context, state.style)
+ 
+             Settings.Secure.putIntForUser(
+                 cr, Settings.Secure.LOCK_SCREEN_CUSTOM_CLOCK_SIZE, state.scale, UserHandle.USER_CURRENT

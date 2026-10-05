@@ -1,0 +1,32 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: chiranz <chiranz08@users.noreply.github.com>
+Date: Mon, 5 Oct 2026 10:06:04 +0000
+Subject: [PATCH 12/12] Clock style oos2: font padding on the big digits so any
+ clock font keeps its spacing
+
+---
+ packages/SystemUI/res-keyguard/layout/keyguard_clock_oos2.xml | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/packages/SystemUI/res-keyguard/layout/keyguard_clock_oos2.xml b/packages/SystemUI/res-keyguard/layout/keyguard_clock_oos2.xml
+index 250f376cc..0d23290f9 100644
+--- a/packages/SystemUI/res-keyguard/layout/keyguard_clock_oos2.xml
++++ b/packages/SystemUI/res-keyguard/layout/keyguard_clock_oos2.xml
+@@ -50,7 +50,7 @@
+                 android:layout_height="wrap_content"
+                 android:singleLine="true"
+                 android:textAlignment="viewStart"
+-                android:includeFontPadding="false"
++                android:includeFontPadding="true"
+                 android:letterSpacing="0"
+                 android:paddingStart="0dp"
+                 android:format12Hour="h"
+@@ -65,7 +65,7 @@
+                 android:layout_height="wrap_content"
+                 android:singleLine="true"
+                 android:textAlignment="viewStart"
+-                android:includeFontPadding="false"
++                android:includeFontPadding="true"
+                 android:letterSpacing="0"
+                 android:paddingStart="0dp"
+                 android:format12Hour=":mm"

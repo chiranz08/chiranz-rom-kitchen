@@ -1,0 +1,35 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: chiranz <chiranz08@users.noreply.github.com>
+Date: Mon, 5 Oct 2026 07:04:10 +0000
+Subject: [PATCH 08/12] ClockStyle: match Infinity's MediaDataListener; drop
+ duplicate key constants
+
+---
+ .../SystemUI/src/com/android/systemui/clocks/ClockStyle.kt | 7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
+
+diff --git a/packages/SystemUI/src/com/android/systemui/clocks/ClockStyle.kt b/packages/SystemUI/src/com/android/systemui/clocks/ClockStyle.kt
+index ebb1a8a72..fc7552551 100644
+--- a/packages/SystemUI/src/com/android/systemui/clocks/ClockStyle.kt
++++ b/packages/SystemUI/src/com/android/systemui/clocks/ClockStyle.kt
+@@ -158,7 +158,7 @@ class ClockStyle @JvmOverloads constructor(
+             }
+         }
+ 
+-        override fun onMediaColorsChanged(color: Int?) {
++        override fun onMediaColorsChanged(color: Int) {
+             currentAlbumColor = color
+             if (albumArtColorEnabled) applyClockColors()
+         }
+@@ -878,11 +878,6 @@ class ClockStyle @JvmOverloads constructor(
+     }
+ 
+     companion object {
+-        // Used by AODStyle and KeyguardClockStyleSection.
+-        @JvmField val CLOCK_STYLE_KEY: String = Settings.Secure.LOCK_SCREEN_CUSTOM_CLOCK_STYLE
+-        @JvmField val CLOCK_FRAME_MARGIN_TOP_KEY: String =
+-            Settings.Secure.LOCK_SCREEN_CUSTOM_CLOCK_MARGIN_TOP
+-
+         private val CLOCK_LAYOUTS = intArrayOf(
+             0,
+             R.layout.keyguard_clock_oos,            // 1

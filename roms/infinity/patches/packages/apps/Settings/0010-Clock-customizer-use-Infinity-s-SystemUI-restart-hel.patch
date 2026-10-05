@@ -1,0 +1,32 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: chiranz <chiranz08@users.noreply.github.com>
+Date: Mon, 5 Oct 2026 07:04:10 +0000
+Subject: [PATCH 10/16] Clock customizer: use Infinity's SystemUI restart
+ helper
+
+---
+ src/com/android/settings/lockscreen/SystemUtilsNew.kt | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/com/android/settings/lockscreen/SystemUtilsNew.kt b/src/com/android/settings/lockscreen/SystemUtilsNew.kt
+index c5dcff1..0cd7de9 100644
+--- a/src/com/android/settings/lockscreen/SystemUtilsNew.kt
++++ b/src/com/android/settings/lockscreen/SystemUtilsNew.kt
+@@ -23,7 +23,7 @@ import android.widget.Toast
+ import androidx.appcompat.app.AlertDialog
+ 
+ import com.android.settings.R
+-import com.android.internal.util.custom.CustomUtils
++import com.android.internal.util.infinity.Utils
+ 
+ object SystemUtilsNew {
+ 
+@@ -48,7 +48,7 @@ object SystemUtilsNew {
+         ).show()
+ 
+         Handler(Looper.getMainLooper()).postDelayed({
+-            CustomUtils.restartSystemUI()
++            Utils.restartSystemUI()
+         }, 2000) // 2-second delay
+     }
+ } 

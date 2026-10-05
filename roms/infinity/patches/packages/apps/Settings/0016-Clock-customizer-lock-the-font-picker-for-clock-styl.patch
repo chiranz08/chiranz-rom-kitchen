@@ -1,0 +1,142 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: chiranz <chiranz08@users.noreply.github.com>
+Date: Mon, 5 Oct 2026 11:21:23 +0000
+Subject: [PATCH 16/16] Clock customizer: lock the font picker for clock styles
+ that use their own font
+
+---
+ res/values/clock_customizer_strings.xml       |  1 +
+ .../lockscreen/ClockCustomizerScreen.kt       | 76 ++++++++++++++++---
+ 2 files changed, 68 insertions(+), 9 deletions(-)
+
+diff --git a/res/values/clock_customizer_strings.xml b/res/values/clock_customizer_strings.xml
+index 413e4f1..8a9bff7 100644
+--- a/res/values/clock_customizer_strings.xml
++++ b/res/values/clock_customizer_strings.xml
+@@ -35,4 +35,5 @@
+     <string name="clock_category_bold">Big &amp; bold</string>
+     <string name="clock_category_cards">Cards &amp; widgets</string>
+     <string name="clock_category_other">Other</string>
++    <string name="clock_font_locked_summary">This clock style uses its own font</string>
+ </resources>
+diff --git a/src/com/android/settings/lockscreen/ClockCustomizerScreen.kt b/src/com/android/settings/lockscreen/ClockCustomizerScreen.kt
+index 4a9ab97..07a891a 100644
+--- a/src/com/android/settings/lockscreen/ClockCustomizerScreen.kt
++++ b/src/com/android/settings/lockscreen/ClockCustomizerScreen.kt
+@@ -94,6 +94,8 @@ import androidx.compose.ui.viewinterop.AndroidView
+ import androidx.core.graphics.drawable.toBitmap
+ import com.android.settings.R
+ import kotlinx.coroutines.delay
++import androidx.compose.ui.draw.alpha
++import androidx.compose.material.icons.filled.Lock
+ import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
+ import androidx.compose.ui.input.nestedscroll.nestedScroll
+ import androidx.compose.ui.layout.layout
+@@ -706,10 +708,45 @@ private fun StyleTabContent(
+             }
+         }
+ 
+-        ClockFontPicker()
++        val fontSupport = remember { mutableMapOf<Int, Boolean>() }
++        val context = LocalContext.current
++        val supportsFont = fontSupport.getOrPut(state.style) {
++            state.style == 0 || styleSupportsClockFont(context, clockLayouts[state.style])
++        }
++        ClockFontPicker(enabled = supportsFont)
+     }
+ }
+ 
++/**
++ * Whether the lock screen layout of a clock style (SystemUI's, not this app's preview copy) uses
++ * the clock font setting. Styles with their own fixed fonts ignore the picked clock font.
++ */
++private fun styleSupportsClockFont(context: android.content.Context, layoutRes: Int): Boolean {
++    return runCatching {
++        val name = context.resources.getResourceEntryName(layoutRes)
++        val sysui = context.createPackageContext("com.android.systemui", 0).resources
++        val id = sysui.getIdentifier(name, "layout", "com.android.systemui")
++        if (id == 0) return true
++        val clockFont = android.content.res.Resources.getSystem()
++            .getIdentifier("config_clockFontFamily", "string", "android")
++        sysui.getLayout(id).use { parser ->
++            var event = parser.eventType
++            while (event != org.xmlpull.v1.XmlPullParser.END_DOCUMENT) {
++                if (event == org.xmlpull.v1.XmlPullParser.START_TAG) {
++                    for (i in 0 until parser.attributeCount) {
++                        if (parser.getAttributeName(i) == "fontFamily" &&
++                                parser.getAttributeResourceValue(i, 0) == clockFont) {
++                            return true
++                        }
++                    }
++                }
++                event = parser.next()
++            }
++        }
++        false
++    }.getOrDefault(true)
++}
++
+ private const val CLOCK_FONT_CATEGORY = "android.theme.customization.lockscreen_clock_font"
+ 
+ private data class ClockFontOption(
+@@ -763,23 +800,44 @@ private fun applyClockFont(context: android.content.Context, packageName: String
+ 
+ /** Row of clock fonts, each drawn in its own face; tapping one applies it (restarts SystemUI). */
+ @Composable
+-private fun ClockFontPicker() {
++private fun ClockFontPicker(enabled: Boolean) {
+     val context = LocalContext.current
+     val options = remember { loadClockFontOptions(context) }
+     if (options.size <= 1) return
+     var current by remember { mutableStateOf(currentClockFontPackage(context)) }
+ 
+     Spacer(modifier = Modifier.height(16.dp))
+-    Text(
+-        text = stringResource(R.string.clock_font_title),
+-        style = MaterialTheme.typography.titleMedium,
+-        color = MaterialTheme.colorScheme.onSurface
+-    )
++    Row(verticalAlignment = Alignment.CenterVertically) {
++        Text(
++            text = stringResource(R.string.clock_font_title),
++            style = MaterialTheme.typography.titleMedium,
++            color = MaterialTheme.colorScheme.onSurface
++        )
++        if (!enabled) {
++            Spacer(modifier = Modifier.width(8.dp))
++            Icon(
++                imageVector = Icons.Default.Lock,
++                contentDescription = null,
++                tint = MaterialTheme.colorScheme.onSurfaceVariant,
++                modifier = Modifier.size(16.dp)
++            )
++        }
++    }
++    if (!enabled) {
++        Text(
++            text = stringResource(R.string.clock_font_locked_summary),
++            style = MaterialTheme.typography.bodySmall,
++            color = MaterialTheme.colorScheme.onSurfaceVariant
++        )
++    }
+     Spacer(modifier = Modifier.height(10.dp))
+     LazyRow(
+         horizontalArrangement = Arrangement.spacedBy(10.dp),
+         contentPadding = PaddingValues(horizontal = 2.dp),
+-        modifier = Modifier.fillMaxWidth()
++        userScrollEnabled = enabled,
++        modifier = Modifier
++            .fillMaxWidth()
++            .alpha(if (enabled) 1f else 0.35f)
+     ) {
+         items(count = options.size) { i ->
+             val option = options[i]
+@@ -800,7 +858,7 @@ private fun ClockFontPicker() {
+                             shape = shape
+                         )
+                         .background(Color(0xFF111520))
+-                        .clickable {
++                        .clickable(enabled = enabled) {
+                             if (option.packageName != current) {
+                                 applyClockFont(context, option.packageName)
+                                 current = option.packageName

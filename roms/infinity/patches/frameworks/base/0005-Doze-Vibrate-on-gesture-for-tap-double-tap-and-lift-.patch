@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: chiranz <chiranz08@users.noreply.github.com>
 Date: Mon, 5 Oct 2026 03:36:42 +0000
-Subject: [PATCH 5/6] Doze: 'Vibrate on gesture' for tap, double-tap and lift
+Subject: [PATCH 05/12] Doze: 'Vibrate on gesture' for tap, double-tap and lift
  wake (from Pixelify-AOSP)
 
 ---

@@ -1,0 +1,2527 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: chiranz <chiranz08@users.noreply.github.com>
+Date: Mon, 5 Oct 2026 06:38:15 +0000
+Subject: [PATCH 07/12] SystemUI: custom lock screen clock styles from
+ Pixelify-AOSP (album art colour, AOD animation, gradient controls, wobble on
+ charge, start margin)
+
+---
+ core/java/android/provider/Settings.java      |  60 ++
+ .../layout/keyguard_clock_big4.xml            |   4 +-
+ .../layout/keyguard_clock_center.xml          |   1 +
+ .../layout/keyguard_clock_cos1.xml            |   5 +-
+ .../layout/keyguard_clock_cos2.xml            |   3 +-
+ .../layout/keyguard_clock_deliriumdual.xml    |   6 +-
+ .../layout/keyguard_clock_galada.xml          |   3 +-
+ .../layout/keyguard_clock_gateway.xml         |   4 +-
+ .../layout/keyguard_clock_gobold.xml          |   5 +-
+ .../layout/keyguard_clock_gobold2.xml         |   5 +-
+ .../layout/keyguard_clock_ios.xml             |   1 -
+ .../layout/keyguard_clock_ios10.xml           |  13 +
+ .../layout/keyguard_clock_ios13.xml           |   5 +-
+ .../layout/keyguard_clock_ios14.xml           |   3 +-
+ .../layout/keyguard_clock_ios15.xml           |   4 +-
+ .../layout/keyguard_clock_ios16.xml           |   2 +-
+ .../layout/keyguard_clock_ios2.xml            |   4 +-
+ .../layout/keyguard_clock_ios3.xml            |   4 +-
+ .../layout/keyguard_clock_ios4.xml            |   4 +-
+ .../layout/keyguard_clock_ios5.xml            |  48 +-
+ .../layout/keyguard_clock_ios6.xml            |   4 +-
+ .../layout/keyguard_clock_ios7.xml            |   8 +-
+ .../layout/keyguard_clock_ios8.xml            |   6 +-
+ .../layout/keyguard_clock_ios9.xml            |   8 +-
+ .../layout/keyguard_clock_miui2.xml           |  50 +-
+ .../layout/keyguard_clock_modak.xml           |   3 +-
+ .../layout/keyguard_clock_nos1.xml            |   9 +-
+ .../layout/keyguard_clock_nos2.xml            |  19 +-
+ .../layout/keyguard_clock_oos.xml             |   2 +-
+ .../layout/keyguard_clock_pixel.xml           |   2 +-
+ .../layout/keyguard_clock_samurai.xml         |   9 +-
+ .../layout/keyguard_clock_simple.xml          |   2 +-
+ .../layout/keyguard_clock_skewrom.xml         |  10 +-
+ .../layout/keyguard_clock_skewrom2.xml        |   4 +-
+ .../layout/keyguard_clock_stylish8.xml        | 106 ++-
+ .../layout/keyguard_clock_tall.xml            |   8 +-
+ .../layout/keyguard_clock_taller.xml          |   6 +-
+ .../layout/keyguard_clock_taller2.xml         |   8 +-
+ .../layout/keyguard_clock_taller3.xml         |   4 +-
+ .../layout/keyguard_clock_word.xml            |  83 +-
+ .../res/values/custom_clock_dimens.xml        |   4 +
+ packages/SystemUI/res/values/ids.xml          |   1 +
+ .../com/android/systemui/clocks/ClockStyle.kt | 802 +++++++++++++-----
+ 43 files changed, 895 insertions(+), 447 deletions(-)
+ create mode 100644 packages/SystemUI/res/values/custom_clock_dimens.xml
+
+diff --git a/core/java/android/provider/Settings.java b/core/java/android/provider/Settings.java
+index 278a497d8..b305a4dd0 100644
+--- a/core/java/android/provider/Settings.java
++++ b/core/java/android/provider/Settings.java
+@@ -7893,6 +7893,12 @@ public final class Settings {
+          */
+         public static final String LOCK_SCREEN_CUSTOM_CLOCK_GRADIENT = "lock_screen_custom_clock_gradient";
+ 
++        /**
++         * Whether to hide the lockscreen clock completely
++         * @hide
++         */
++        public static final String LS_CLOCK_HIDE = "ls_clock_hide";
++
+         /**
+          * Gradient color mode
+          * @hide
+@@ -15115,6 +15121,60 @@ public final class Settings {
+          */
+         public static final String LOCK_SCREEN_CUSTOM_CLOCK_SIZE = "lock_screen_custom_clock_size_scale";
+ 
++        /**
++         * Custom clock animation
++         * @hide
++         */
++        public static final String LOCK_SCREEN_CUSTOM_CLOCK_ALBUM_ART_COLOR = "lock_screen_custom_clock_album_art_color";
++
++        /**
++         * Custom clock wobble
++         * @hide
++         */
++        public static final String LOCK_SCREEN_CUSTOM_CLOCK_WOBBLE_ON_CHARGE = "lock_screen_custom_clock_wobble_on_charge";
++
++        /**
++         * Custom start margin
++         * @hide
++         */
++        public static final String LOCK_SCREEN_CUSTOM_CLOCK_MARGIN_START = "lock_screen_custom_clock_margin_start";
++
++        /**
++         * Custom gradient
++         * @hide
++         */
++        public static final String LOCK_SCREEN_CUSTOM_CLOCK_GRADIENT_ENABLED = "lock_screen_custom_clock_gradient_enabled";
++
++        /**
++         * Custom gradient start
++         * @hide
++         */
++        public static final String LOCK_SCREEN_CUSTOM_CLOCK_GRADIENT_COLOR_START = "lock_screen_custom_clock_gradient_color_start";
++
++        /**
++         * Custom gradient end
++         * @hide
++         */
++        public static final String LOCK_SCREEN_CUSTOM_CLOCK_GRADIENT_COLOR_END = "lock_screen_custom_clock_gradient_color_end";
++
++        /**
++         * Custom gradient anchor
++         * @hide
++         */
++        public static final String LOCK_SCREEN_CUSTOM_CLOCK_GRADIENT_ANCHOR_Y = "lock_screen_custom_clock_gradient_anchor_y";
++
++        /**
++         * Custom gradient radius
++         * @hide
++         */
++        public static final String LOCK_SCREEN_CUSTOM_CLOCK_GRADIENT_RADIUS = "lock_screen_custom_clock_gradient_radius";
++
++        /**
++         * Custom clock weather
++         * @hide
++         */
++        public static final String CUSTOM_CLOCK_WEATHER = "custom_clock_weather";
++
+         /**
+          * Custom clock animation
+          * @hide
+diff --git a/packages/SystemUI/res-keyguard/layout/keyguard_clock_big4.xml b/packages/SystemUI/res-keyguard/layout/keyguard_clock_big4.xml
+index 51ac913c7..1665503e6 100644
+--- a/packages/SystemUI/res-keyguard/layout/keyguard_clock_big4.xml
++++ b/packages/SystemUI/res-keyguard/layout/keyguard_clock_big4.xml
+@@ -54,7 +54,7 @@
+         android:id="@+id/hour_text"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+-        android:layout_marginTop="-25dp"
++        android:layout_marginTop="-15dp"
+         android:textSize="200dp"
+         android:textColor="@android:color/white"
+         android:fontFamily="@font/Bebas"
+@@ -66,7 +66,7 @@
+         android:id="@+id/minute_text"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+-        android:layout_marginTop="-25dp"
++        android:layout_marginTop="-15dp"
+         android:textSize="200dp"
+         android:textColor="@android:color/white"
+         android:fontFamily="@font/Gobold"
+diff --git a/packages/SystemUI/res-keyguard/layout/keyguard_clock_center.xml b/packages/SystemUI/res-keyguard/layout/keyguard_clock_center.xml
+index c3b51577d..3ad509abe 100644
+--- a/packages/SystemUI/res-keyguard/layout/keyguard_clock_center.xml
++++ b/packages/SystemUI/res-keyguard/layout/keyguard_clock_center.xml
+@@ -52,6 +52,7 @@
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:alpha="0.9"
++            android:layout_marginTop="8dp"
+             android:fontFamily="@*android:string/config_clockFontFamily"
+             android:format12Hour="hh:mm"
+             android:format24Hour="HH:mm"
+diff --git a/packages/SystemUI/res-keyguard/layout/keyguard_clock_cos1.xml b/packages/SystemUI/res-keyguard/layout/keyguard_clock_cos1.xml
+index 330709e46..d95bdfbb3 100644
+--- a/packages/SystemUI/res-keyguard/layout/keyguard_clock_cos1.xml
++++ b/packages/SystemUI/res-keyguard/layout/keyguard_clock_cos1.xml
+@@ -55,9 +55,8 @@
+         android:gravity="center"
+         android:singleLine="true"
+         android:textAlignment="center"
+-        android:layout_marginTop="-30dp"
+-        android:layout_marginBottom="-20dp"
++        android:layout_marginTop="-40dp"
+         android:textColor="@android:color/white"
+-        android:textSize="100dp" />
++        android:textSize="120dp" />
+ 
+ </LinearLayout>
+diff --git a/packages/SystemUI/res-keyguard/layout/keyguard_clock_cos2.xml b/packages/SystemUI/res-keyguard/layout/keyguard_clock_cos2.xml
+index a7da51589..dc27945df 100644
+--- a/packages/SystemUI/res-keyguard/layout/keyguard_clock_cos2.xml
++++ b/packages/SystemUI/res-keyguard/layout/keyguard_clock_cos2.xml
+@@ -55,8 +55,7 @@
+         android:gravity="center"
+         android:singleLine="true"
+         android:textAlignment="center"
+-        android:layout_marginTop="-30dp"
+-        android:layout_marginBottom="-20dp"
++        android:layout_marginTop="-40dp"
+         android:textColor="@android:color/white"
+         android:textSize="120dp" />
+ 
+diff --git a/packages/SystemUI/res-keyguard/layout/keyguard_clock_deliriumdual.xml b/packages/SystemUI/res-keyguard/layout/keyguard_clock_deliriumdual.xml
+index d433c4786..e1e1ce31f 100644
+--- a/packages/SystemUI/res-keyguard/layout/keyguard_clock_deliriumdual.xml
++++ b/packages/SystemUI/res-keyguard/layout/keyguard_clock_deliriumdual.xml
+@@ -49,8 +49,8 @@
+     <LinearLayout
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+-        android:layout_marginTop="-50dp"
+-        android:layout_marginBottom="-50dp"
++        android:layout_marginTop="-60dp"
++        android:layout_marginBottom="-40dp"
+         android:layout_gravity="center_horizontal"
+         android:orientation="horizontal"
+         android:gravity="center">
+@@ -58,6 +58,7 @@
+         <TextClock
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
++            android:layout_marginTop="5dp"
+             android:fontFamily="@font/Delirium"
+             android:format12Hour="hh"
+             android:format24Hour="HH"
+@@ -70,6 +71,7 @@
+         <TextClock
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
++            android:layout_marginTop="5dp"
+             android:fontFamily="@font/DeliriumNeon"
+             android:format12Hour="mm"
+             android:format24Hour="mm"
+diff --git a/packages/SystemUI/res-keyguard/layout/keyguard_clock_galada.xml b/packages/SystemUI/res-keyguard/layout/keyguard_clock_galada.xml
+index 7c3af8b31..e002e40f9 100644
+--- a/packages/SystemUI/res-keyguard/layout/keyguard_clock_galada.xml
++++ b/packages/SystemUI/res-keyguard/layout/keyguard_clock_galada.xml
+@@ -55,8 +55,7 @@
+         android:gravity="center"
+         android:singleLine="true"
+         android:textAlignment="center"
+-        android:layout_marginTop="-35dp"
+-        android:layout_marginBottom="-20dp"
++        android:layout_marginTop="-40dp"
+         android:textColor="@android:color/white"
+         android:textSize="120dp" />
+ 
+diff --git a/packages/SystemUI/res-keyguard/layout/keyguard_clock_gateway.xml b/packages/SystemUI/res-keyguard/layout/keyguard_clock_gateway.xml
+index f7c4f22af..a9b8ced47 100644
+--- a/packages/SystemUI/res-keyguard/layout/keyguard_clock_gateway.xml
++++ b/packages/SystemUI/res-keyguard/layout/keyguard_clock_gateway.xml
+@@ -53,8 +53,8 @@
+         android:layout_height="wrap_content"
+         android:layout_gravity="center"
+         android:fontFamily="@font/Getaway"
+-        android:layout_marginTop="-7dp"
+-        android:layout_marginBottom="-20dp"
++        android:layout_marginTop="-6dp"
++        android:layout_marginBottom="-6dp"
+         android:format12Hour="hhmm"
+         android:format24Hour="HHmm"
+         android:gravity="center"
+diff --git a/packages/SystemUI/res-keyguard/layout/keyguard_clock_gobold.xml b/packages/SystemUI/res-keyguard/layout/keyguard_clock_gobold.xml
+index bee4045e3..391644077 100644
+--- a/packages/SystemUI/res-keyguard/layout/keyguard_clock_gobold.xml
++++ b/packages/SystemUI/res-keyguard/layout/keyguard_clock_gobold.xml
+@@ -11,9 +11,9 @@
+     <LinearLayout
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+-        android:layout_marginStart="65dp"
++        android:layout_marginStart="33dp"
+         android:layout_marginTop="12dp"
+-        android:layout_marginEnd="65dp"
++        android:layout_marginEnd="33dp"
+         android:layout_marginBottom="-20dp"
+         android:gravity="center_vertical"
+         android:orientation="horizontal">
+@@ -63,7 +63,6 @@
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_marginTop="-4dp"
+-        android:layout_marginBottom="-20dp"
+         android:layout_gravity="center_horizontal"
+         android:gravity="center"
+         android:orientation="horizontal">
+diff --git a/packages/SystemUI/res-keyguard/layout/keyguard_clock_gobold2.xml b/packages/SystemUI/res-keyguard/layout/keyguard_clock_gobold2.xml
+index b3ba0615d..62f827efa 100644
+--- a/packages/SystemUI/res-keyguard/layout/keyguard_clock_gobold2.xml
++++ b/packages/SystemUI/res-keyguard/layout/keyguard_clock_gobold2.xml
+@@ -11,9 +11,9 @@
+     <LinearLayout
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+-        android:layout_marginStart="65dp"
++        android:layout_marginStart="33dp"
+         android:layout_marginTop="12dp"
+-        android:layout_marginEnd="65dp"
++        android:layout_marginEnd="33dp"
+         android:layout_marginBottom="-20dp"
+         android:gravity="center_vertical"
+         android:orientation="horizontal">
+@@ -62,7 +62,6 @@
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_marginTop="-4dp"
+-        android:layout_marginBottom="-20dp"
+         android:layout_gravity="center_horizontal"
+         android:gravity="center"
+         android:orientation="horizontal">
+diff --git a/packages/SystemUI/res-keyguard/layout/keyguard_clock_ios.xml b/packages/SystemUI/res-keyguard/layout/keyguard_clock_ios.xml
+index d65f59f8c..3274316fc 100644
+--- a/packages/SystemUI/res-keyguard/layout/keyguard_clock_ios.xml
++++ b/packages/SystemUI/res-keyguard/layout/keyguard_clock_ios.xml
+@@ -51,7 +51,6 @@
+         android:layout_height="wrap_content"
+         android:fontFamily="@font/tallclock"
+         android:layout_marginTop="4dp"
+-        android:layout_marginBottom="-25dp"
+         android:format12Hour="hhmm"
+         android:format24Hour="HHmm"
+         android:gravity="center"
+diff --git a/packages/SystemUI/res-keyguard/layout/keyguard_clock_ios10.xml b/packages/SystemUI/res-keyguard/layout/keyguard_clock_ios10.xml
+index 2aaf8cfdb..348056925 100644
+--- a/packages/SystemUI/res-keyguard/layout/keyguard_clock_ios10.xml
++++ b/packages/SystemUI/res-keyguard/layout/keyguard_clock_ios10.xml
+@@ -8,6 +8,19 @@
+     android:gravity="center_horizontal|top"
+     android:orientation="vertical">
+ 
++    <TextClock
++        android:layout_width="match_parent"
++        android:layout_height="wrap_content"
++        android:fontFamily="@font/Bebas"
++        android:format12Hour="EEE, MMM d"
++        android:format24Hour="EEE, d MMM"
++        android:gravity="center"
++        android:singleLine="true"
++        android:textAlignment="center"
++        android:layout_marginBottom="-5dp"
++        android:textColor="@android:color/white"
++        android:textSize="20dp" />
++
+     <TextClock
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+diff --git a/packages/SystemUI/res-keyguard/layout/keyguard_clock_ios13.xml b/packages/SystemUI/res-keyguard/layout/keyguard_clock_ios13.xml
+index 065c10257..3eb72010c 100644
+--- a/packages/SystemUI/res-keyguard/layout/keyguard_clock_ios13.xml
++++ b/packages/SystemUI/res-keyguard/layout/keyguard_clock_ios13.xml
+@@ -50,8 +50,7 @@
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:fontFamily="@font/Expanse"
+-        android:layout_marginTop="-20dp"
+-        android:layout_marginBottom="-20dp"
++        android:layout_marginTop="-10dp"
+         android:includeFontPadding="false"
+         android:format12Hour="hh:mm"
+         android:format24Hour="HH:mm"
+@@ -59,7 +58,7 @@
+         android:singleLine="true"
+         android:textAlignment="center"
+         android:textColor="@android:color/white"
+-        android:textSize="160dp" />
++        android:textSize="140dp" />
+ 
+ </LinearLayout>
+ 
+diff --git a/packages/SystemUI/res-keyguard/layout/keyguard_clock_ios14.xml b/packages/SystemUI/res-keyguard/layout/keyguard_clock_ios14.xml
+index 835dd849e..763ff0869 100644
+--- a/packages/SystemUI/res-keyguard/layout/keyguard_clock_ios14.xml
++++ b/packages/SystemUI/res-keyguard/layout/keyguard_clock_ios14.xml
+@@ -49,8 +49,7 @@
+     <TextClock
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+-        android:layout_marginTop="6dp"
+-        android:layout_marginBottom="-20dp"
++        android:layout_marginTop="4dp"
+         android:fontFamily="@font/Varino"
+         android:includeFontPadding="false"
+         android:format12Hour="hh:mm"
+diff --git a/packages/SystemUI/res-keyguard/layout/keyguard_clock_ios15.xml b/packages/SystemUI/res-keyguard/layout/keyguard_clock_ios15.xml
+index 9c457cf65..6ee0d8dd6 100644
+--- a/packages/SystemUI/res-keyguard/layout/keyguard_clock_ios15.xml
++++ b/packages/SystemUI/res-keyguard/layout/keyguard_clock_ios15.xml
+@@ -51,13 +51,13 @@
+         android:layout_height="wrap_content"
+         android:fontFamily="@font/Quartilla"
+         android:layout_marginTop="5dp"
+-        android:layout_marginBottom="-100dp"
++        android:layout_marginBottom="-90dp"
+         android:format12Hour="hh:mm"
+         android:format24Hour="HH:mm"
+         android:gravity="center"
+         android:singleLine="true"
+         android:textAlignment="center"
+         android:textColor="@android:color/white"
+-        android:textSize="320dp" />
++        android:textSize="370dp" />
+ 
+ </LinearLayout>
+diff --git a/packages/SystemUI/res-keyguard/layout/keyguard_clock_ios16.xml b/packages/SystemUI/res-keyguard/layout/keyguard_clock_ios16.xml
+index c2892c541..006e0f0b8 100644
+--- a/packages/SystemUI/res-keyguard/layout/keyguard_clock_ios16.xml
++++ b/packages/SystemUI/res-keyguard/layout/keyguard_clock_ios16.xml
+@@ -55,7 +55,7 @@
+         android:gravity="center"
+         android:singleLine="true"
+         android:textAlignment="center"
+-        android:layout_marginTop="-16dp"
++        android:layout_marginTop="-20dp"
+         android:layout_marginBottom="-20dp"
+         android:textColor="@android:color/white"
+         android:textSize="220dp" />
+diff --git a/packages/SystemUI/res-keyguard/layout/keyguard_clock_ios2.xml b/packages/SystemUI/res-keyguard/layout/keyguard_clock_ios2.xml
+index 213337a5e..9388cba3f 100644
+--- a/packages/SystemUI/res-keyguard/layout/keyguard_clock_ios2.xml
++++ b/packages/SystemUI/res-keyguard/layout/keyguard_clock_ios2.xml
+@@ -24,7 +24,7 @@
+             android:singleLine="true"
+             android:textAlignment="center"
+             android:textColor="@android:color/white"
+-            android:textSize="16dp"
++            android:textSize="20dp"
+             android:textStyle="bold" />
+ 
+         <com.android.systemui.weather.WeatherImageView
+@@ -40,7 +40,7 @@
+             android:layout_height="wrap_content"
+             android:layout_marginStart="4dp"
+             android:textColor="@android:color/white"
+-            android:textSize="16dp"
++            android:textSize="20dp"
+             android:textStyle="bold"
+             android:visibility="gone" />
+ 
+diff --git a/packages/SystemUI/res-keyguard/layout/keyguard_clock_ios3.xml b/packages/SystemUI/res-keyguard/layout/keyguard_clock_ios3.xml
+index 4119bdab2..c84f7c8a0 100644
+--- a/packages/SystemUI/res-keyguard/layout/keyguard_clock_ios3.xml
++++ b/packages/SystemUI/res-keyguard/layout/keyguard_clock_ios3.xml
+@@ -24,7 +24,7 @@
+             android:singleLine="true"
+             android:textAlignment="center"
+             android:textColor="@android:color/white"
+-            android:textSize="16dp"
++            android:textSize="20dp"
+             android:textStyle="bold" />
+ 
+         <com.android.systemui.weather.WeatherImageView
+@@ -40,7 +40,7 @@
+             android:layout_height="wrap_content"
+             android:layout_marginStart="4dp"
+             android:textColor="@android:color/white"
+-            android:textSize="16dp"
++            android:textSize="20dp"
+             android:textStyle="bold"
+             android:visibility="gone" />
+ 
+diff --git a/packages/SystemUI/res-keyguard/layout/keyguard_clock_ios4.xml b/packages/SystemUI/res-keyguard/layout/keyguard_clock_ios4.xml
+index 499958705..49bd102b7 100644
+--- a/packages/SystemUI/res-keyguard/layout/keyguard_clock_ios4.xml
++++ b/packages/SystemUI/res-keyguard/layout/keyguard_clock_ios4.xml
+@@ -24,7 +24,7 @@
+             android:singleLine="true"
+             android:textAlignment="center"
+             android:textColor="@android:color/white"
+-            android:textSize="16dp"
++            android:textSize="20dp"
+             android:textStyle="bold" />
+ 
+         <com.android.systemui.weather.WeatherImageView
+@@ -40,7 +40,7 @@
+             android:layout_height="wrap_content"
+             android:layout_marginStart="4dp"
+             android:textColor="@android:color/white"
+-            android:textSize="16dp"
++            android:textSize="20dp"
+             android:textStyle="bold"
+             android:visibility="gone" />
+ 
+diff --git a/packages/SystemUI/res-keyguard/layout/keyguard_clock_ios5.xml b/packages/SystemUI/res-keyguard/layout/keyguard_clock_ios5.xml
+index 283ccbfbe..776935cb2 100644
+--- a/packages/SystemUI/res-keyguard/layout/keyguard_clock_ios5.xml
++++ b/packages/SystemUI/res-keyguard/layout/keyguard_clock_ios5.xml
+@@ -24,7 +24,7 @@
+             android:singleLine="true"
+             android:textAlignment="center"
+             android:textColor="@android:color/white"
+-            android:textSize="18dp"
++            android:textSize="20dp"
+             android:textStyle="bold" />
+ 
+         <com.android.systemui.weather.WeatherImageView
+@@ -40,46 +40,24 @@
+             android:layout_height="wrap_content"
+             android:layout_marginStart="4dp"
+             android:textColor="@android:color/white"
+-            android:textSize="18dp"
++            android:textSize="20dp"
+             android:textStyle="bold"
+             android:visibility="gone" />
+ 
+     </LinearLayout>
+ 
+-    <LinearLayout
+-        android:layout_width="wrap_content"
++    <TextClock
++        android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+-        android:layout_gravity="center_horizontal"
+-        android:orientation="horizontal"
++        android:fontFamily="@font/Quartilla"
++        android:layout_marginTop="5dp"
+         android:layout_marginBottom="-90dp"
+-        android:gravity="center">
+-
+-        <TextClock
+-            android:layout_width="wrap_content"
+-            android:layout_height="wrap_content"
+-            android:layout_marginTop="5dp"
+-            android:fontFamily="@font/Quartilla"
+-            android:format12Hour="hh"
+-            android:format24Hour="HH"
+-            android:gravity="center"
+-            android:singleLine="true"
+-            android:textAlignment="center"
+-            android:textColor="@android:color/white"
+-            android:textSize="410dp" />
+-
+-        <TextClock
+-            android:layout_width="wrap_content"
+-            android:layout_height="wrap_content"
+-            android:layout_marginTop="5dp"
+-            android:fontFamily="@font/Quartilla"
+-            android:format12Hour="mm"
+-            android:format24Hour="mm"
+-            android:gravity="center"
+-            android:singleLine="true"
+-            android:textAlignment="center"
+-            android:textColor="@android:color/white"
+-            android:textSize="410dp" />
+-
+-    </LinearLayout>
++        android:format12Hour="hhmm"
++        android:format24Hour="HHmm"
++        android:gravity="center"
++        android:singleLine="true"
++        android:textAlignment="center"
++        android:textColor="@android:color/white"
++        android:textSize="400dp" />
+ 
+ </LinearLayout>
+diff --git a/packages/SystemUI/res-keyguard/layout/keyguard_clock_ios6.xml b/packages/SystemUI/res-keyguard/layout/keyguard_clock_ios6.xml
+index 6bca00487..76820dab9 100644
+--- a/packages/SystemUI/res-keyguard/layout/keyguard_clock_ios6.xml
++++ b/packages/SystemUI/res-keyguard/layout/keyguard_clock_ios6.xml
+@@ -24,7 +24,7 @@
+             android:singleLine="true"
+             android:textAlignment="center"
+             android:textColor="@android:color/white"
+-            android:textSize="18dp"
++            android:textSize="20dp"
+             android:textStyle="bold" />
+ 
+         <com.android.systemui.weather.WeatherImageView
+@@ -40,7 +40,7 @@
+             android:layout_height="wrap_content"
+             android:layout_marginStart="4dp"
+             android:textColor="@android:color/white"
+-            android:textSize="18dp"
++            android:textSize="20dp"
+             android:textStyle="bold"
+             android:visibility="gone" />
+ 
+diff --git a/packages/SystemUI/res-keyguard/layout/keyguard_clock_ios7.xml b/packages/SystemUI/res-keyguard/layout/keyguard_clock_ios7.xml
+index f1076f4a5..bdebed19c 100644
+--- a/packages/SystemUI/res-keyguard/layout/keyguard_clock_ios7.xml
++++ b/packages/SystemUI/res-keyguard/layout/keyguard_clock_ios7.xml
+@@ -24,7 +24,7 @@
+             android:singleLine="true"
+             android:textAlignment="center"
+             android:textColor="@android:color/white"
+-            android:textSize="18dp"
++            android:textSize="20dp"
+             android:textStyle="bold" />
+ 
+         <com.android.systemui.weather.WeatherImageView
+@@ -40,7 +40,7 @@
+             android:layout_height="wrap_content"
+             android:layout_marginStart="4dp"
+             android:textColor="@android:color/white"
+-            android:textSize="18dp"
++            android:textSize="20dp"
+             android:textStyle="bold"
+             android:visibility="gone" />
+ 
+@@ -65,7 +65,7 @@
+             android:singleLine="true"
+             android:textAlignment="center"
+             android:textColor="#f9f9f9"
+-            android:textSize="410dp" />
++            android:textSize="390dp" />
+ 
+         <TextClock
+             android:layout_width="wrap_content"
+@@ -78,7 +78,7 @@
+             android:singleLine="true"
+             android:textAlignment="center"
+             android:textColor="@android:color/white"
+-            android:textSize="410dp" />
++            android:textSize="390dp" />
+ 
+     </LinearLayout>
+ 
+diff --git a/packages/SystemUI/res-keyguard/layout/keyguard_clock_ios8.xml b/packages/SystemUI/res-keyguard/layout/keyguard_clock_ios8.xml
+index bb8b23ef0..ce8660a3a 100644
+--- a/packages/SystemUI/res-keyguard/layout/keyguard_clock_ios8.xml
++++ b/packages/SystemUI/res-keyguard/layout/keyguard_clock_ios8.xml
+@@ -12,7 +12,7 @@
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:fontFamily="@font/Kenyen"
+-        android:layout_marginBottom="-12dp"
++        android:layout_marginBottom="-10dp"
+         android:format12Hour="hhmm"
+         android:format24Hour="HHmm"
+         android:gravity="center"
+@@ -37,7 +37,7 @@
+             android:singleLine="true"
+             android:textAlignment="center"
+             android:textColor="@android:color/white"
+-            android:textSize="17dp"
++            android:textSize="20dp"
+             android:textStyle="bold" />
+ 
+         <com.android.systemui.weather.WeatherImageView
+@@ -53,7 +53,7 @@
+             android:layout_height="wrap_content"
+             android:layout_marginStart="4dp"
+             android:textColor="@android:color/white"
+-            android:textSize="17dp"
++            android:textSize="20dp"
+             android:textStyle="bold"
+             android:visibility="gone" />
+ 
+diff --git a/packages/SystemUI/res-keyguard/layout/keyguard_clock_ios9.xml b/packages/SystemUI/res-keyguard/layout/keyguard_clock_ios9.xml
+index 48f71f8b6..d00056b77 100644
+--- a/packages/SystemUI/res-keyguard/layout/keyguard_clock_ios9.xml
++++ b/packages/SystemUI/res-keyguard/layout/keyguard_clock_ios9.xml
+@@ -24,7 +24,7 @@
+             android:singleLine="true"
+             android:textAlignment="center"
+             android:textColor="#f9f9f9"
+-            android:textSize="16dp"
++            android:textSize="20dp"
+             android:textStyle="bold" />
+ 
+         <com.android.systemui.weather.WeatherImageView
+@@ -40,7 +40,7 @@
+             android:layout_height="wrap_content"
+             android:layout_marginStart="4dp"
+             android:textColor="#f9f9f9"
+-            android:textSize="16dp"
++            android:textSize="20dp"
+             android:textStyle="bold"
+             android:visibility="gone" />
+ 
+@@ -50,14 +50,13 @@
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_gravity="center_horizontal"
+-        android:layout_marginTop="5dp"
+-        android:layout_marginBottom="-10dp"
+         android:orientation="horizontal"
+         android:gravity="center">
+ 
+         <TextClock
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
++            android:layout_marginTop="5dp"
+             android:fontFamily="@font/Ayame"
+             android:format12Hour="hh"
+             android:format24Hour="HH"
+@@ -70,6 +69,7 @@
+         <TextClock
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
++            android:layout_marginTop="5dp"
+             android:fontFamily="@font/Ayame"
+             android:format12Hour="mm"
+             android:format24Hour="mm"
+diff --git a/packages/SystemUI/res-keyguard/layout/keyguard_clock_miui2.xml b/packages/SystemUI/res-keyguard/layout/keyguard_clock_miui2.xml
+index 3b4d0e1d9..3db4709b7 100644
+--- a/packages/SystemUI/res-keyguard/layout/keyguard_clock_miui2.xml
++++ b/packages/SystemUI/res-keyguard/layout/keyguard_clock_miui2.xml
+@@ -1,10 +1,11 @@
+ <?xml version="1.0" encoding="utf-8"?>
+ <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
++    xmlns:app="http://schemas.android.com/apk/res-auto"
+     android:id="@+id/clock_frame"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+-    android:layout_gravity="top"
+-    android:gravity="top"
++    android:layout_gravity="center_horizontal|top"
++    android:gravity="center_horizontal|top"
+     android:orientation="vertical">
+ 
+     <LinearLayout
+@@ -29,7 +30,7 @@
+                 android:format24Hour="HH"
+                 android:includeFontPadding="false"
+                 android:singleLine="true"
+-                android:textColor="@android:color/white"
++                android:textColor="#fefefe"
+                 android:textSize="290dp" />
+ 
+             <TextClock
+@@ -40,32 +41,31 @@
+                 android:format24Hour="mm"
+                 android:includeFontPadding="false"
+                 android:singleLine="true"
+-                android:textColor="#fefefe"
++                android:textColor="@android:color/system_accent1_100"
+                 android:textSize="290dp" />
+-
+         </LinearLayout>
+     </LinearLayout>
+ 
+-    <LinearLayout
+-        android:layout_width="match_parent"
++    <TextClock
++        android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+-        android:layout_marginStart="22dp"
+-        android:layout_marginTop="-50dp"
+-        android:gravity="center_vertical"
+-        android:orientation="horizontal">
++        android:layout_gravity="center"
++        android:layout_marginTop="-30dp"
++        android:fontFamily="@font/general_sans"
++        android:format12Hour="EEE, dd/MM"
++        android:format24Hour="EEE, dd/MM"
++        android:includeFontPadding="false"
++        android:singleLine="true"
++        android:textAllCaps="true"
++        android:textColor="#fefefe"
++        android:textSize="15dp" />
+ 
+-        <TextClock
+-            android:layout_width="wrap_content"
+-            android:layout_height="wrap_content"
+-            android:fontFamily="@font/general_sans"
+-            android:format12Hour="EEE, dd/MM"
+-            android:format24Hour="EEE, dd/MM"
+-            android:includeFontPadding="false"
+-            android:singleLine="true"
+-            android:textAlignment="viewStart"
+-            android:textAllCaps="true"
+-            android:textColor="#fefefe"
+-            android:textSize="15dp" />
++    <LinearLayout
++        android:layout_width="wrap_content"
++        android:layout_height="wrap_content"
++        android:gravity="center"
++        android:layout_gravity="center"
++        android:layout_marginTop="4dp">
+ 
+         <com.android.systemui.weather.WeatherImageView
+             android:id="@+id/weather_image"
+@@ -79,6 +79,8 @@
+             android:id="@+id/weather_text"
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
++            android:layout_marginStart="4dp"
++            android:layout_marginEnd="8dp"
+             android:fontFamily="@font/general_sans"
+             android:textAllCaps="true"
+             android:textColor="#fefefe"
+@@ -87,4 +89,4 @@
+ 
+     </LinearLayout>
+ 
+-</LinearLayout>
+\ No newline at end of file
++</LinearLayout>
+diff --git a/packages/SystemUI/res-keyguard/layout/keyguard_clock_modak.xml b/packages/SystemUI/res-keyguard/layout/keyguard_clock_modak.xml
+index ed0ff22b5..901bd014f 100644
+--- a/packages/SystemUI/res-keyguard/layout/keyguard_clock_modak.xml
++++ b/packages/SystemUI/res-keyguard/layout/keyguard_clock_modak.xml
+@@ -55,8 +55,7 @@
+         android:gravity="center"
+         android:singleLine="true"
+         android:textAlignment="center"
+-        android:layout_marginTop="-35dp"
+-        android:layout_marginBottom="-35dp"
++        android:layout_marginTop="-40dp"
+         android:textColor="@android:color/white"
+         android:textSize="120dp" />
+ 
+diff --git a/packages/SystemUI/res-keyguard/layout/keyguard_clock_nos1.xml b/packages/SystemUI/res-keyguard/layout/keyguard_clock_nos1.xml
+index aac76dce7..c004b9664 100644
+--- a/packages/SystemUI/res-keyguard/layout/keyguard_clock_nos1.xml
++++ b/packages/SystemUI/res-keyguard/layout/keyguard_clock_nos1.xml
+@@ -32,10 +32,12 @@
+ 
+             <com.android.systemui.weather.WeatherImageView
+                 android:id="@+id/weather_image"
+-                android:layout_width="wrap_content"
+-                android:layout_height="wrap_content"
++                android:layout_width="20sp"
++                android:layout_height="20sp"
++                android:layout_gravity="center_vertical"
+                 android:layout_marginStart="8dp"
+                 android:layout_marginEnd="4dp"
++                android:scaleType="fitCenter"
+                 android:visibility="gone" />
+ 
+             <com.android.systemui.weather.WeatherTextView
+@@ -43,7 +45,6 @@
+                 android:layout_width="wrap_content"
+                 android:layout_height="wrap_content"
+                 android:layout_marginStart="4dp"
+-                android:layout_marginEnd="8dp"
+                 android:textColor="@android:color/white"
+                 android:textSize="20dp"
+                 android:visibility="gone" />
+@@ -54,7 +55,7 @@
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:alpha="0.9"
+-            android:layout_marginTop="7dp"
++            android:layout_marginTop="9dp"
+             android:fontFamily="@font/subway"
+             android:includeFontPadding="false"
+             android:format12Hour="hmm"
+diff --git a/packages/SystemUI/res-keyguard/layout/keyguard_clock_nos2.xml b/packages/SystemUI/res-keyguard/layout/keyguard_clock_nos2.xml
+index 4f71748c8..a6b9f2b6a 100644
+--- a/packages/SystemUI/res-keyguard/layout/keyguard_clock_nos2.xml
++++ b/packages/SystemUI/res-keyguard/layout/keyguard_clock_nos2.xml
+@@ -34,18 +34,20 @@
+ 
+             <com.android.systemui.weather.WeatherImageView
+                 android:id="@+id/weather_image"
+-                android:layout_width="wrap_content"
+-                android:layout_height="wrap_content"
++                android:layout_width="22sp"
++                android:layout_height="22sp"
++                android:layout_gravity="center_vertical"
+                 android:layout_marginStart="8dp"
+                 android:layout_marginEnd="4dp"
++                android:scaleType="fitCenter"
+                 android:visibility="gone" />
+ 
+             <com.android.systemui.weather.WeatherTextView
+                 android:id="@+id/weather_text"
+                 android:layout_width="wrap_content"
+                 android:layout_height="wrap_content"
++                android:layout_gravity="center_vertical"
+                 android:layout_marginStart="4dp"
+-                android:layout_marginEnd="8dp"
+                 android:textColor="@android:color/white"
+                 android:textSize="22dp"
+                 android:visibility="gone" />
+@@ -56,7 +58,7 @@
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:orientation="horizontal"
+-            android:layout_marginTop="-12dp"
++            android:layout_marginTop="-4dp"
+             android:gravity="center">
+ 
+             <!-- Hour TextClock -->
+@@ -64,6 +66,7 @@
+                 android:id="@+id/clock_hour"
+                 android:layout_width="wrap_content"
+                 android:layout_height="wrap_content"
++                android:alpha="0.9"
+                 android:fontFamily="@font/ntype82"
+                 android:format12Hour="h"
+                 android:format24Hour="H"
+@@ -72,25 +75,27 @@
+                 android:tag="text1"
+                 android:textAlignment="center"
+                 android:textColor="@android:color/white"
+-                android:textSize="100dp" />
++                android:textSize="150dp" />
+ 
+             <!-- Colon TextView -->
+             <TextView
+                 android:id="@+id/clock_colon"
+                 android:layout_width="wrap_content"
+                 android:layout_height="wrap_content"
++                android:alpha="0.9"
+                 android:gravity="center"
+                 android:singleLine="true"
+                 android:text=":"
+                 android:textAlignment="center"
+                 android:textColor="@android:color/white"
+-                android:textSize="94dp" />
++                android:textSize="145dp" />
+ 
+             <!-- Minute TextClock -->
+             <TextClock
+                 android:id="@+id/clock_minute"
+                 android:layout_width="wrap_content"
+                 android:layout_height="wrap_content"
++                android:alpha="0.9"
+                 android:fontFamily="@font/ntype82" 
+                 android:format12Hour="mm"
+                 android:format24Hour="mm"
+@@ -99,7 +104,7 @@
+                 android:tag="text1"
+                 android:textAlignment="center"
+                 android:textColor="@android:color/white"
+-                android:textSize="100dp" />
++                android:textSize="150dp" />
+         </LinearLayout>
+     </LinearLayout>
+ </LinearLayout>
+diff --git a/packages/SystemUI/res-keyguard/layout/keyguard_clock_oos.xml b/packages/SystemUI/res-keyguard/layout/keyguard_clock_oos.xml
+index a159e1e15..1fb26f8e7 100644
+--- a/packages/SystemUI/res-keyguard/layout/keyguard_clock_oos.xml
++++ b/packages/SystemUI/res-keyguard/layout/keyguard_clock_oos.xml
+@@ -52,7 +52,7 @@
+ 
+         <TextClock
+             android:textSize="40sp"
+-            android:textColor="#ff0000"
++            android:textColor="@android:color/system_accent1_600"
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:fontFamily="@*android:string/config_clockFontFamily"
+diff --git a/packages/SystemUI/res-keyguard/layout/keyguard_clock_pixel.xml b/packages/SystemUI/res-keyguard/layout/keyguard_clock_pixel.xml
+index cf5ccfd9c..a51d787b1 100644
+--- a/packages/SystemUI/res-keyguard/layout/keyguard_clock_pixel.xml
++++ b/packages/SystemUI/res-keyguard/layout/keyguard_clock_pixel.xml
+@@ -20,7 +20,7 @@
+         android:singleLine="true"
+         android:textAlignment="center"
+         android:textColor="@android:color/white"
+-        android:textSize="100dp" />
++        android:textSize="120dp" />
+ 
+     <LinearLayout
+         android:layout_width="wrap_content"
+diff --git a/packages/SystemUI/res-keyguard/layout/keyguard_clock_samurai.xml b/packages/SystemUI/res-keyguard/layout/keyguard_clock_samurai.xml
+index 4f492e8bc..75d46e4a1 100644
+--- a/packages/SystemUI/res-keyguard/layout/keyguard_clock_samurai.xml
++++ b/packages/SystemUI/res-keyguard/layout/keyguard_clock_samurai.xml
+@@ -25,7 +25,7 @@
+             android:singleLine="true"
+             android:textAlignment="center"
+             android:textColor="@android:color/white"
+-            android:textSize="15dp" />
++            android:textSize="20dp" />
+ 
+         <com.android.systemui.weather.WeatherImageView
+             android:id="@+id/weather_image"
+@@ -42,7 +42,7 @@
+             android:fontFamily="@font/general_sans"
+             android:textAllCaps="true"
+             android:textColor="@android:color/white"
+-            android:textSize="15dp"
++            android:textSize="20dp"
+             android:visibility="gone" />
+ 
+     </LinearLayout>
+@@ -52,14 +52,13 @@
+         android:layout_height="wrap_content"
+         android:layout_gravity="center"
+         android:fontFamily="@font/Electroharmonix"
+-        android:layout_marginTop="-15dp"
+-        android:layout_marginBottom="-10dp"
++        android:layout_marginTop="-6dp"
+         android:format12Hour="hhmm"
+         android:format24Hour="HHmm"
+         android:gravity="center"
+         android:singleLine="true"
+         android:textAlignment="center"
+         android:textColor="@android:color/white"
+-        android:textSize="130dp" />
++        android:textSize="120dp" />
+ 
+ </LinearLayout>
+diff --git a/packages/SystemUI/res-keyguard/layout/keyguard_clock_simple.xml b/packages/SystemUI/res-keyguard/layout/keyguard_clock_simple.xml
+index f3dbe2abe..8ccc16b88 100644
+--- a/packages/SystemUI/res-keyguard/layout/keyguard_clock_simple.xml
++++ b/packages/SystemUI/res-keyguard/layout/keyguard_clock_simple.xml
+@@ -58,4 +58,4 @@
+             android:textSize="20sp" />
+     </LinearLayout>
+ 
+-</LinearLayout>
+\ No newline at end of file
++</LinearLayout>
+diff --git a/packages/SystemUI/res-keyguard/layout/keyguard_clock_skewrom.xml b/packages/SystemUI/res-keyguard/layout/keyguard_clock_skewrom.xml
+index 28357b573..6f3753831 100644
+--- a/packages/SystemUI/res-keyguard/layout/keyguard_clock_skewrom.xml
++++ b/packages/SystemUI/res-keyguard/layout/keyguard_clock_skewrom.xml
+@@ -24,7 +24,7 @@
+             android:singleLine="true"
+             android:textAlignment="center"
+             android:textColor="@android:color/white"
+-            android:textSize="15dp"
++            android:textSize="18dp"
+             android:textStyle="bold" />
+ 
+         <com.android.systemui.weather.WeatherImageView
+@@ -40,7 +40,7 @@
+             android:layout_height="wrap_content"
+             android:layout_marginStart="4dp"
+             android:textColor="@android:color/white"
+-            android:textSize="15dp"
++            android:textSize="18dp"
+             android:textStyle="bold"
+             android:visibility="gone" />
+ 
+@@ -49,8 +49,8 @@
+     <LinearLayout
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+-        android:layout_marginTop="-40dp"
+-        android:layout_marginBottom="-60dp"
++        android:layout_marginTop="-30dp"
++        android:layout_marginBottom="-40dp"
+         android:layout_gravity="center_horizontal"
+         android:orientation="horizontal"
+         android:gravity="center">
+@@ -58,6 +58,7 @@
+         <TextClock
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
++            android:layout_marginTop="5dp"
+             android:fontFamily="@font/Skewrom"
+             android:format12Hour="hh"
+             android:format24Hour="HH"
+@@ -70,6 +71,7 @@
+         <TextClock
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
++            android:layout_marginTop="5dp"
+             android:fontFamily="@font/Skewrom"
+             android:format12Hour="mm"
+             android:format24Hour="mm"
+diff --git a/packages/SystemUI/res-keyguard/layout/keyguard_clock_skewrom2.xml b/packages/SystemUI/res-keyguard/layout/keyguard_clock_skewrom2.xml
+index 1e4549434..9cc7a6f93 100644
+--- a/packages/SystemUI/res-keyguard/layout/keyguard_clock_skewrom2.xml
++++ b/packages/SystemUI/res-keyguard/layout/keyguard_clock_skewrom2.xml
+@@ -55,8 +55,8 @@
+         android:gravity="center"
+         android:singleLine="true"
+         android:textAlignment="center"
+-        android:layout_marginTop="-25dp"
+-        android:layout_marginBottom="-60dp"
++        android:layout_marginTop="-20dp"
++        android:layout_marginBottom="-50dp"
+         android:textColor="@android:color/white"
+         android:textSize="320dp" />
+ 
+diff --git a/packages/SystemUI/res-keyguard/layout/keyguard_clock_stylish8.xml b/packages/SystemUI/res-keyguard/layout/keyguard_clock_stylish8.xml
+index 9ece84c8f..44d033002 100644
+--- a/packages/SystemUI/res-keyguard/layout/keyguard_clock_stylish8.xml
++++ b/packages/SystemUI/res-keyguard/layout/keyguard_clock_stylish8.xml
+@@ -1,79 +1,73 @@
+ <?xml version="1.0" encoding="utf-8"?>
+ <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+-    xmlns:tools="http://schemas.android.com/tools"
++    xmlns:app="http://schemas.android.com/apk/res-auto"
++    android:id="@+id/clock_frame"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+-    android:layout_gravity="center|top"
+-    android:gravity="center|top"
++    android:layout_gravity="start|top"
++    android:gravity="start|top"
+     android:orientation="vertical">
+ 
+-    <LinearLayout
++    <TextClock
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+-        android:layout_gravity="center"
+-        android:gravity="center"
+-        android:orientation="vertical"
+-        tools:ignore="UselessParent">
++        android:layout_marginBottom="4dp"
++        android:fontFamily="@font/astthillabeltaden"
++        android:format12Hour="EEEE"
++        android:format24Hour="EEEE"
++        android:includeFontPadding="false"
++        android:tag="text1|nolineheight"
++        android:textColor="#FFFFFF"
++        android:textSize="120sp" />
+ 
+-        <TextClock
+-            android:layout_width="wrap_content"
+-            android:layout_height="wrap_content"
+-            android:layout_marginBottom="4dp"
+-            android:fontFamily="@font/astthillabeltaden"
+-            android:format12Hour=" EEEE "
+-            android:format24Hour=" EEEE "
+-            android:includeFontPadding="false"
+-            android:tag="text1|nolineheight"
+-            android:textColor="#FFFFFF"
+-            android:textSize="120sp" />
++    <FrameLayout
++        android:layout_width="wrap_content"
++        android:layout_height="wrap_content"
++        android:layout_marginTop="-20dp">
+ 
+-        <FrameLayout
++        <LinearLayout
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
+-            android:layout_marginTop="-20dp">
++            android:orientation="vertical"
++            android:layout_marginStart="10dp">
++
++            <TextClock
++                android:layout_width="wrap_content"
++                android:layout_height="wrap_content"
++                android:format12Hour="hh : mm  |  MMM dd"
++                android:format24Hour="HH : mm  |  dd MMM"
++                android:includeFontPadding="false"
++                android:tag="text1"
++                android:textColor="#FFFFFF"
++                android:textSize="20sp"
++                android:textStyle="bold" />
+ 
+             <LinearLayout
+                 android:layout_width="wrap_content"
+                 android:layout_height="wrap_content"
+-                android:orientation="vertical"
+-                android:layout_gravity="center">
++                android:orientation="horizontal"
++                android:gravity="center_vertical">
+ 
+-                <TextClock
+-                    android:layout_width="wrap_content"
+-                    android:layout_height="wrap_content"
+-                    android:format12Hour="hh : mm | MMM dd"
+-                    android:format24Hour="HH : mm | dd MMM"
+-                    android:includeFontPadding="false"
+-                    android:tag="text1"
+-                    android:textColor="#FFFFFF"
+-                    android:textSize="20sp"
+-                    android:textStyle="bold" />
++                <com.android.systemui.weather.WeatherImageView
++                    android:id="@+id/weather_image"
++                    android:layout_width="18sp"
++                    android:layout_height="18sp"
++                    android:layout_gravity="center_vertical"
++                    android:layout_marginEnd="2dp"
++                    android:visibility="gone" />
+ 
+-                <LinearLayout
++                <com.android.systemui.weather.WeatherTextView
++                    android:id="@+id/weather_text"
+                     android:layout_width="wrap_content"
+                     android:layout_height="wrap_content"
+-                    android:orientation="horizontal"
+-                    android:gravity="center_vertical"
+-                    android:layout_gravity="center">
+-
+-                    <com.android.systemui.weather.WeatherImageView
+-                        android:id="@+id/weather_image"
+-                        android:layout_width="20dp"
+-                        android:layout_height="20dp"
+-                        android:visibility="gone"
+-                        android:layout_marginEnd="2dp" />
+-
+-                    <com.android.systemui.weather.WeatherTextView
+-                        android:id="@+id/weather_text"
+-                        android:layout_width="wrap_content"
+-                        android:layout_height="wrap_content"
+-                        android:textStyle="bold"
+-                        android:textColor="@android:color/white"
+-                        android:visibility="gone"
+-                        android:textSize="20sp" />
++                    android:layout_gravity="center_vertical"
++                    android:layout_marginStart="4dp"
++                    android:textStyle="bold"
++                    android:textColor="@android:color/white"
++                    android:visibility="gone"
++                    android:textSize="20sp" />
+ 
+-                </LinearLayout>
+             </LinearLayout>
+-        </FrameLayout>
+-    </LinearLayout>
++        </LinearLayout>
++    </FrameLayout>
+ </LinearLayout>
+diff --git a/packages/SystemUI/res-keyguard/layout/keyguard_clock_tall.xml b/packages/SystemUI/res-keyguard/layout/keyguard_clock_tall.xml
+index 1ad66864b..866f230a8 100644
+--- a/packages/SystemUI/res-keyguard/layout/keyguard_clock_tall.xml
++++ b/packages/SystemUI/res-keyguard/layout/keyguard_clock_tall.xml
+@@ -11,6 +11,7 @@
+     <TextClock
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
++        android:fontFamily="@*android:string/config_clockFontFamily"
+         android:format12Hour="dd MMM yyyy"
+         android:format24Hour="dd MMM yyyy"
+         android:gravity="center"
+@@ -18,7 +19,6 @@
+         android:textAlignment="center"
+         android:textColor="#f9f9f9"
+         android:textSize="20dp"
+-        android:layout_marginBottom="-40dp"
+         android:includeFontPadding="false"
+         android:textStyle="bold" />
+ 
+@@ -42,7 +42,7 @@
+             android:textAlignment="center"
+             android:textColor="#f9f9f9"
+             android:includeFontPadding="false"
+-            android:textSize="310dp" />
++            android:textSize="340dp" />
+ 
+         <TextClock
+             android:layout_width="wrap_content"
+@@ -55,7 +55,7 @@
+             android:textAlignment="center"
+             android:textColor="@android:color/white"
+             android:includeFontPadding="false"
+-            android:textSize="310dp" />
++            android:textSize="340dp" />
+ 
+     </LinearLayout>
+ 
+@@ -79,9 +79,9 @@
+             android:layout_height="wrap_content"
+             android:layout_marginStart="4dp"
+             android:layout_marginEnd="8dp"
++            android:fontFamily="@*android:string/config_clockFontFamily"
+             android:textColor="@android:color/white"
+             android:textSize="20dp"
+-            android:textStyle="bold"            
+             android:visibility="gone" />
+ 
+     </LinearLayout>
+diff --git a/packages/SystemUI/res-keyguard/layout/keyguard_clock_taller.xml b/packages/SystemUI/res-keyguard/layout/keyguard_clock_taller.xml
+index 49bdc4b28..20f296d03 100644
+--- a/packages/SystemUI/res-keyguard/layout/keyguard_clock_taller.xml
++++ b/packages/SystemUI/res-keyguard/layout/keyguard_clock_taller.xml
+@@ -24,7 +24,7 @@
+             android:singleLine="true"
+             android:textAlignment="center"
+             android:textColor="@android:color/white"
+-            android:textSize="15dp"
++            android:textSize="17dp"
+             android:textStyle="bold" />
+ 
+         <com.android.systemui.weather.WeatherImageView
+@@ -40,7 +40,7 @@
+             android:layout_height="wrap_content"
+             android:layout_marginStart="4dp"
+             android:textColor="@android:color/white"
+-            android:textSize="15dp"
++            android:textSize="17dp"
+             android:textStyle="bold"
+             android:visibility="gone" />
+ 
+@@ -55,7 +55,7 @@
+         android:gravity="center"
+         android:singleLine="true"
+         android:textAlignment="center"
+-        android:layout_marginTop="-40dp"
++        android:layout_marginTop="-35dp"
+         android:layout_marginBottom="-50dp"
+         android:textColor="@android:color/white"
+         android:textSize="270dp" />
+diff --git a/packages/SystemUI/res-keyguard/layout/keyguard_clock_taller2.xml b/packages/SystemUI/res-keyguard/layout/keyguard_clock_taller2.xml
+index a6e9f2422..bc0473887 100644
+--- a/packages/SystemUI/res-keyguard/layout/keyguard_clock_taller2.xml
++++ b/packages/SystemUI/res-keyguard/layout/keyguard_clock_taller2.xml
+@@ -24,7 +24,7 @@
+             android:singleLine="true"
+             android:textAlignment="center"
+             android:textColor="@android:color/white"
+-            android:textSize="16dp"
++            android:textSize="18dp"
+             android:textStyle="bold" />
+ 
+         <com.android.systemui.weather.WeatherImageView
+@@ -40,7 +40,7 @@
+             android:layout_height="wrap_content"
+             android:layout_marginStart="4dp"
+             android:textColor="@android:color/white"
+-            android:textSize="16dp"
++            android:textSize="18dp"
+             android:textStyle="bold"
+             android:visibility="gone" />
+ 
+@@ -49,7 +49,7 @@
+     <LinearLayout
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+-        android:layout_marginTop="-55dp"
++        android:layout_marginTop="-45dp"
+         android:layout_marginBottom="-50dp"
+         android:layout_gravity="center_horizontal"
+         android:orientation="horizontal"
+@@ -58,6 +58,7 @@
+         <TextClock
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
++            android:layout_marginTop="5dp"
+             android:fontFamily="@font/Taller"
+             android:format12Hour="hh"
+             android:format24Hour="HH"
+@@ -70,6 +71,7 @@
+         <TextClock
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
++            android:layout_marginTop="5dp"
+             android:fontFamily="@font/Taller"
+             android:format12Hour="mm"
+             android:format24Hour="mm"
+diff --git a/packages/SystemUI/res-keyguard/layout/keyguard_clock_taller3.xml b/packages/SystemUI/res-keyguard/layout/keyguard_clock_taller3.xml
+index 2ae5deff9..f54874677 100644
+--- a/packages/SystemUI/res-keyguard/layout/keyguard_clock_taller3.xml
++++ b/packages/SystemUI/res-keyguard/layout/keyguard_clock_taller3.xml
+@@ -49,7 +49,7 @@
+     <LinearLayout
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+-        android:layout_marginTop="-17dp"
++        android:layout_marginTop="-20dp"
+         android:layout_marginBottom="-40dp"
+         android:layout_gravity="center_horizontal"
+         android:orientation="horizontal"
+@@ -58,6 +58,7 @@
+         <TextClock
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
++            android:layout_marginTop="5dp"
+             android:fontFamily="@font/PXtall"
+             android:format12Hour="hh"
+             android:format24Hour="HH"
+@@ -70,6 +71,7 @@
+         <TextClock
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
++            android:layout_marginTop="5dp"
+             android:fontFamily="@font/PXtall"
+             android:format12Hour="mm"
+             android:format24Hour="mm"
+diff --git a/packages/SystemUI/res-keyguard/layout/keyguard_clock_word.xml b/packages/SystemUI/res-keyguard/layout/keyguard_clock_word.xml
+index 2165b94dd..bd5a56700 100644
+--- a/packages/SystemUI/res-keyguard/layout/keyguard_clock_word.xml
++++ b/packages/SystemUI/res-keyguard/layout/keyguard_clock_word.xml
+@@ -1,34 +1,73 @@
+ <?xml version="1.0" encoding="utf-8"?>
+-<FrameLayout
++<LinearLayout
+     xmlns:android="http://schemas.android.com/apk/res/android"
+     android:layout_width="match_parent"
+-    android:layout_height="match_parent">
++    android:layout_height="match_parent"
++    android:orientation="vertical"
++    android:layout_gravity="start|center_vertical">
+ 
+-    <LinearLayout
++    <!-- "It's" Text -->
++    <TextView
++        android:id="@+id/its_text"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+-        android:orientation="vertical"
+-        android:layout_gravity="start|center_vertical" >
++        android:text="It's"
++        android:fontFamily="@*android:string/config_clockFontFamily"
++        android:textSize="62sp"
++        android:textColor="@android:color/system_accent1_300"
++        android:layout_marginStart="4dp"
++        android:layout_marginBottom="8dp" />
+ 
+-        <!-- "It's" Text -->
+-        <TextView
+-            android:id="@+id/its_text"
+-            android:layout_width="wrap_content"
+-            android:layout_height="wrap_content"
+-            android:text="It's"
+-            android:fontFamily="@*android:string/config_clockFontFamily"
+-            android:textSize="62sp"
+-            android:textColor="@android:color/system_accent1_300" />
++    <!-- Custom Word Clock -->
++    <TextView
++        android:id="@+id/word_clock"
++        android:layout_width="wrap_content"
++        android:layout_height="wrap_content"
++        android:text="Eight"
++        android:lineSpacingExtra="8dp"
++        android:textSize="64sp"
++        android:fontFamily="@*android:string/config_clockFontFamily"
++        android:textColor="@android:color/white" 
++        android:layout_marginStart="4dp"
++        android:layout_marginBottom="8dp"/>
++
++    <TextView
++        android:id="@+id/word_min"
++        android:layout_width="wrap_content"
++        android:layout_height="wrap_content"
++        android:text="Seventeen"
++        android:lineSpacingExtra="8dp"
++        android:textSize="64sp"
++        android:fontFamily="@*android:string/config_clockFontFamily"
++        android:layout_marginStart="4dp"
++        android:textColor="@android:color/white" />
++
++    <LinearLayout
++        android:layout_width="match_parent"
++        android:layout_height="wrap_content"
++        android:layout_gravity="center_horizontal"
++        android:layout_marginTop="4dp"
++        android:gravity="center_horizontal"
++        android:orientation="horizontal">
++
++        <com.android.systemui.weather.WeatherImageView
++            android:id="@+id/weather_image"
++            android:layout_width="22sp"
++            android:layout_height="22sp"
++            android:layout_gravity="center_vertical"
++            android:layout_marginEnd="4dp"
++            android:scaleType="fitCenter"
++            android:visibility="gone" />
+ 
+-        <!-- Custom Word Clock -->
+-        <com.android.systemui.clocks.WordClockView
+-            android:id="@+id/word_clock"
++        <com.android.systemui.weather.WeatherTextView
++            android:id="@+id/weather_text"
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
+-            android:lineSpacingExtra="8dp"
+-            android:textSize="64sp"
++            android:layout_gravity="center_vertical"
++            android:layout_marginStart="4dp"
+             android:fontFamily="@*android:string/config_clockFontFamily"
+-            android:textAlignment="viewStart"
+-            android:textColor="@android:color/white" />
++            android:textColor="@android:color/white"
++            android:visibility="gone"
++            android:textSize="22sp" />
+     </LinearLayout>
+-</FrameLayout>
+\ No newline at end of file
++</LinearLayout>
+diff --git a/packages/SystemUI/res/values/custom_clock_dimens.xml b/packages/SystemUI/res/values/custom_clock_dimens.xml
+new file mode 100644
+index 000000000..9b8759778
+--- /dev/null
++++ b/packages/SystemUI/res/values/custom_clock_dimens.xml
+@@ -0,0 +1,4 @@
++<?xml version="1.0" encoding="utf-8"?>
++<resources>
++    <dimen name="custom_clock_frame_margin_top">0dp</dimen>
++</resources>
+diff --git a/packages/SystemUI/res/values/ids.xml b/packages/SystemUI/res/values/ids.xml
+index 5e9e3b33a..223766ec1 100644
+--- a/packages/SystemUI/res/values/ids.xml
++++ b/packages/SystemUI/res/values/ids.xml
+@@ -323,4 +323,5 @@
+     <!-- Clock face -->
+     <item type="id" name="original_text_color" />
+     <item type="id" name="original_typeface" />
++    <item type="id" name="original_alpha" />
+ </resources>
+diff --git a/packages/SystemUI/src/com/android/systemui/clocks/ClockStyle.kt b/packages/SystemUI/src/com/android/systemui/clocks/ClockStyle.kt
+index 1c039713f..ebb1a8a72 100644
+--- a/packages/SystemUI/src/com/android/systemui/clocks/ClockStyle.kt
++++ b/packages/SystemUI/src/com/android/systemui/clocks/ClockStyle.kt
+@@ -4,15 +4,22 @@
+  */
+ package com.android.systemui.clocks
+ 
++import android.animation.Animator
++import android.animation.AnimatorListenerAdapter
++import android.animation.Keyframe
++import android.animation.ObjectAnimator
++import android.animation.PropertyValuesHolder
+ import android.content.BroadcastReceiver
+ import android.content.Context
+ import android.content.Intent
+ import android.content.IntentFilter
+-import android.content.res.Configuration
+ import android.graphics.Color
++import android.graphics.Color.colorToHSV
++import android.graphics.Color.HSVToColor
+ import android.graphics.LinearGradient
+ import android.graphics.Shader
+ import android.graphics.Typeface
++import android.media.session.PlaybackState
+ import android.os.Handler
+ import android.os.Looper
+ import android.os.UserHandle
+@@ -31,9 +38,13 @@ import android.widget.RelativeLayout
+ import android.widget.TextClock
+ import android.widget.TextView
+ import com.android.systemui.Dependency
++import com.android.systemui.media.MediaSessionManager
+ import com.android.systemui.plugins.statusbar.StatusBarStateController
+ import com.android.systemui.res.R
+ import com.android.systemui.tuner.TunerService
++import kotlin.math.abs
++import kotlin.math.cos
++import kotlin.math.sin
+ 
+ class ClockStyle @JvmOverloads constructor(
+     context: Context,
+@@ -44,6 +55,7 @@ class ClockStyle @JvmOverloads constructor(
+     private val statusBarStateController: StatusBarStateController =
+         Dependency.get(StatusBarStateController::class.java)
+     private val handler = Handler(Looper.getMainLooper())
++    private val random = java.util.Random()
+ 
+     private var currentClockView: View? = null
+     private var clockStub: ViewStub? = null
+@@ -58,17 +70,35 @@ class ClockStyle @JvmOverloads constructor(
+     private var clockOpacity = DEFAULT_OPACITY
+     private var clockFrameMarginTop = DEFAULT_MARGIN_TOP
+     private var clockSizeScale = DEFAULT_CLOCK_SIZE
++    private var clockFrameMarginStart = DEFAULT_MARGIN_START
+ 
+-    private var clockGradientEnabled = false
+-    private var gradientColorMode = 0
+-    private var gradientStartColor = 0
+-    private var gradientEndColor = 0
++    private var gradientEnabled = false
++    private var gradientColorStart = DEFAULT_GRADIENT_COLOR_START
++    private var gradientColorEnd = DEFAULT_GRADIENT_COLOR_END
++    private var gradientAnchorY = DEFAULT_GRADIENT_ANCHOR_Y
++    private var gradientRadius = DEFAULT_GRADIENT_RADIUS
++
++    private var gradientAngleDeg = 90
++
++    private var aodAnimEnabled = true
++    private var albumArtColorEnabled = false
++    private var currentAlbumColor: Int? = null
+ 
+     private var lastUpdateTimeMillis = 0L
+     private var isDozing = false
+     private var callbacksRegistered = false
+ 
++    private var currentShiftX = 0
++    private var currentShiftY = 0
++
++    private var naturalClockHeight = 0
++
+     private var pendingLayoutListener: View.OnLayoutChangeListener? = null
++    private var clockSizeListener: View.OnLayoutChangeListener? = null
++
++    private var clockWobbleOnChargeEnabled = true
++    private var wobbleAnimator: ObjectAnimator? = null
++    private var wobbleGlowAnimator: android.animation.ValueAnimator? = null
+ 
+     private val screenReceiver = object : BroadcastReceiver() {
+         override fun onReceive(context: Context, intent: Intent) {
+@@ -77,6 +107,12 @@ class ClockStyle @JvmOverloads constructor(
+                 Intent.ACTION_TIME_TICK,
+                 Intent.ACTION_TIME_CHANGED,
+                 DOZE_PULSE_ACTION -> onTimeChanged()
++                Intent.ACTION_POWER_CONNECTED -> {
++                    if (clockWobbleOnChargeEnabled && !isDozing) {
++                        startWobbleAnimation()
++                    }
++                }
++                Intent.ACTION_POWER_DISCONNECTED -> cancelWobbleAnimation()
+             }
+         }
+     }
+@@ -91,6 +127,20 @@ class ClockStyle @JvmOverloads constructor(
+         }
+     }
+ 
++    private val burnInProtectionRunnable = object : Runnable {
++        override fun run() {
++            if (!isDozing) return
++            currentShiftX = random.nextInt(BURN_IN_PROTECTION_MAX_SHIFT * 2) - BURN_IN_PROTECTION_MAX_SHIFT
++            currentShiftY = random.nextInt(BURN_IN_PROTECTION_MAX_SHIFT * 2) - BURN_IN_PROTECTION_MAX_SHIFT
++            currentClockView?.apply {
++                translationX = currentShiftX.toFloat()
++                translationY = currentShiftY.toFloat()
++            }
++            invalidate()
++            handler.postDelayed(this, BURN_IN_PROTECTION_INTERVAL)
++        }
++    }
++
+     private val statusBarStateListener = object : StatusBarStateController.StateListener {
+         override fun onStateChanged(newState: Int) {}
+ 
+@@ -100,6 +150,20 @@ class ClockStyle @JvmOverloads constructor(
+         }
+     }
+ 
++    private val mediaDataListener = object : MediaSessionManager.MediaDataListener {
++        override fun onPlaybackStateChanged(state: Int) {
++            if (state != PlaybackState.STATE_PLAYING) {
++                currentAlbumColor = null
++                if (albumArtColorEnabled) applyClockColors()
++            }
++        }
++
++        override fun onMediaColorsChanged(color: Int?) {
++            currentAlbumColor = color
++            if (albumArtColorEnabled) applyClockColors()
++        }
++    }
++
+     override fun onFinishInflate() {
+         super.onFinishInflate()
+         clockStub = findViewById(R.id.clock_view_stub)
+@@ -118,17 +182,26 @@ class ClockStyle @JvmOverloads constructor(
+             CLOCK_TEXT_OPACITY_KEY,
+             CLOCK_FRAME_MARGIN_TOP_KEY,
+             CLOCK_SIZE_KEY,
++            CLOCK_AOD_ANIM_KEY,
++            CLOCK_ALBUM_ART_COLOR_KEY,
++            CLOCK_WOBBLE_ON_CHARGE_KEY,
++            CLOCK_FRAME_MARGIN_START_KEY,
+             CLOCK_GRADIENT_ENABLED_KEY,
+-            GRADIENT_COLOR_MODE_KEY,
+-            GRADIENT_START_COLOR_KEY,
+-            GRADIENT_END_COLOR_KEY,
++            CLOCK_GRADIENT_COLOR_START_KEY,
++            CLOCK_GRADIENT_COLOR_END_KEY,
++            CLOCK_GRADIENT_ANCHOR_Y_KEY,
++            CLOCK_GRADIENT_RADIUS_KEY,
+         )
+         statusBarStateController.addCallback(statusBarStateListener)
++        if (albumArtColorEnabled) {
++            MediaSessionManager.get().addListener(mediaDataListener)
++        }
+ 
+         isDozing = statusBarStateController.isDozing
+         if (isDozing) {
+             applyClockAlpha()
+             applyClockColors()
++            startBurnInProtection()
+             startAodTick()
+         }
+ 
+@@ -137,6 +210,8 @@ class ClockStyle @JvmOverloads constructor(
+             addAction(Intent.ACTION_TIME_TICK)
+             addAction(Intent.ACTION_TIME_CHANGED)
+             addAction(DOZE_PULSE_ACTION)
++            addAction(Intent.ACTION_POWER_CONNECTED)
++            addAction(Intent.ACTION_POWER_DISCONNECTED)
+         }
+         context.registerReceiver(screenReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+         callbacksRegistered = true
+@@ -148,28 +223,16 @@ class ClockStyle @JvmOverloads constructor(
+ 
+         statusBarStateController.removeCallback(statusBarStateListener)
+         tunerService.removeTunable(this)
++        runCatching { MediaSessionManager.get().removeListener(mediaDataListener) }
++        handler.removeCallbacks(burnInProtectionRunnable)
+         handler.removeCallbacks(aodTickRunnable)
+         currentClockView?.animate()?.cancel()
++        cancelWobbleAnimation()
+         removePendingLayoutListener()
+         runCatching { context.unregisterReceiver(screenReceiver) }
+         callbacksRegistered = false
+     }
+ 
+-    override fun onConfigurationChanged(newConfig: Configuration) {
+-        super.onConfigurationChanged(newConfig)
+-        updateClockView()
+-    }
+-
+-    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+-        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+-        val view = currentClockView
+-        if (view != null && clockStyle != 0) {
+-            val scale = getCurrentScale()
+-            val scaledHeight = (measuredHeight * scale).toInt()
+-            setMeasuredDimension(measuredWidth, scaledHeight)
+-        }
+-    }
+-
+     override fun onTuningChanged(key: String?, newValue: String?) {
+         when (key) {
+             CLOCK_STYLE_KEY -> {
+@@ -207,21 +270,52 @@ class ClockStyle @JvmOverloads constructor(
+                     .coerceIn(MIN_CLOCK_SIZE, MAX_CLOCK_SIZE)
+                 applyClockScale()
+             }
++            CLOCK_AOD_ANIM_KEY -> {
++                aodAnimEnabled = TunerService.parseInteger(newValue, 1) != 0
++            }
++            CLOCK_ALBUM_ART_COLOR_KEY -> {
++                val wasEnabled = albumArtColorEnabled
++                albumArtColorEnabled = TunerService.parseInteger(newValue, 0) != 0
++                when {
++                    albumArtColorEnabled && !wasEnabled ->
++                        MediaSessionManager.get().addListener(mediaDataListener)
++                    !albumArtColorEnabled && wasEnabled -> {
++                        runCatching { MediaSessionManager.get().removeListener(mediaDataListener) }
++                        currentAlbumColor = null
++                    }
++                }
++                applyClockColors()
++            }
++            CLOCK_WOBBLE_ON_CHARGE_KEY -> {
++                clockWobbleOnChargeEnabled = TunerService.parseInteger(newValue, 1) != 0
++                if (!clockWobbleOnChargeEnabled) cancelWobbleAnimation()
++            }
++            CLOCK_FRAME_MARGIN_START_KEY -> {
++                clockFrameMarginStart = TunerService.parseInteger(newValue, DEFAULT_MARGIN_START)
++                    .coerceIn(-200, 200)
++                updateClockFrameMargin()
++            }
+             CLOCK_GRADIENT_ENABLED_KEY -> {
+-                clockGradientEnabled = TunerService.parseInteger(newValue, 0) != 0
++                gradientEnabled = TunerService.parseInteger(newValue, 0) != 0
+                 applyClockColors()
+             }
+-            GRADIENT_COLOR_MODE_KEY -> {
+-                gradientColorMode = TunerService.parseInteger(newValue, 0)
+-                if (clockGradientEnabled) applyClockColors()
++            CLOCK_GRADIENT_COLOR_START_KEY -> {
++                gradientColorStart = TunerService.parseInteger(newValue, DEFAULT_GRADIENT_COLOR_START)
++                if (gradientEnabled) applyClockColors()
++            }
++            CLOCK_GRADIENT_COLOR_END_KEY -> {
++                gradientColorEnd = TunerService.parseInteger(newValue, DEFAULT_GRADIENT_COLOR_END)
++                if (gradientEnabled) applyClockColors()
+             }
+-            GRADIENT_START_COLOR_KEY -> {
+-                gradientStartColor = TunerService.parseInteger(newValue, 0)
+-                if (clockGradientEnabled) applyClockColors()
++            CLOCK_GRADIENT_ANCHOR_Y_KEY -> {
++                gradientAnchorY = TunerService.parseInteger(newValue, DEFAULT_GRADIENT_ANCHOR_Y)
++                    .coerceIn(0, 100)
++                if (gradientEnabled) applyClockColors()
+             }
+-            GRADIENT_END_COLOR_KEY -> {
+-                gradientEndColor = TunerService.parseInteger(newValue, 0)
+-                if (clockGradientEnabled) applyClockColors()
++            CLOCK_GRADIENT_RADIUS_KEY -> {
++                gradientRadius = TunerService.parseInteger(newValue, DEFAULT_GRADIENT_RADIUS)
++                    .coerceIn(MIN_GRADIENT_RADIUS, MAX_GRADIENT_RADIUS)
++                if (gradientEnabled) applyClockColors()
+             }
+         }
+     }
+@@ -232,8 +326,10 @@ class ClockStyle @JvmOverloads constructor(
+         applyClockAlpha()
+         applyClockColors()
+         if (dozing) {
++            startBurnInProtection()
+             startAodTick()
+         } else {
++            stopBurnInProtection()
+             stopAodTick()
+             forceTimeUpdate()
+         }
+@@ -251,8 +347,24 @@ class ClockStyle @JvmOverloads constructor(
+         handler.removeCallbacks(aodTickRunnable)
+     }
+ 
++    private fun startBurnInProtection() {
++        if (clockStyle == 0) return
++        handler.removeCallbacks(burnInProtectionRunnable)
++        handler.postDelayed(burnInProtectionRunnable, BURN_IN_PROTECTION_INTERVAL)
++    }
++
++    private fun stopBurnInProtection() {
++        if (clockStyle == 0) return
++        handler.removeCallbacks(burnInProtectionRunnable)
++        currentClockView?.apply {
++            translationX = 0f
++            translationY = 0f
++        }
++    }
++
+     private fun animateAodTransition(toAod: Boolean) {
+         val view = currentClockView ?: return
++        if (!aodAnimEnabled) return
+         view.animate().cancel()
+         if (toAod) {
+             view.animate()
+@@ -306,6 +418,8 @@ class ClockStyle @JvmOverloads constructor(
+         currentClockView = null
+         textClocks.clear()
+         styledTextViews.clear()
++        naturalClockHeight = 0
++        clockContainer?.minimumHeight = 0
+ 
+         if (clockStyle in 1 until CLOCK_LAYOUTS.size) {
+             val stub = clockStub
+@@ -338,6 +452,7 @@ class ClockStyle @JvmOverloads constructor(
+ 
+                 updateClockAppearance()
+                 updateClockFrameMargin()
++                attachClockSizeListener(view)
+             }
+         }
+ 
+@@ -349,18 +464,16 @@ class ClockStyle @JvmOverloads constructor(
+     private fun cacheClockViews(root: View) {
+         when (root) {
+             is TextClock -> {
+-                root.typeface?.let {
+-                    root.setTag(R.id.original_typeface, it)
+-                    root.typeface = it
+-                }
++                root.setTag(R.id.original_typeface, root.typeface)
++                root.setTag(R.id.original_text_color, root.currentTextColor)
++                root.setTag(R.id.original_alpha, root.alpha)
+                 textClocks.add(root)
+                 styledTextViews.add(root)
+             }
+             is TextView -> {
+-                root.typeface?.let {
+-                    root.setTag(R.id.original_typeface, it)
+-                    root.typeface = it
+-                }
++                root.setTag(R.id.original_typeface, root.typeface)
++                root.setTag(R.id.original_text_color, root.currentTextColor)
++                root.setTag(R.id.original_alpha, root.alpha)
+                 styledTextViews.add(root)
+             }
+         }
+@@ -374,7 +487,13 @@ class ClockStyle @JvmOverloads constructor(
+     private fun updateClockFrameMargin() {
+         val clockFrame = findViewById<View?>(R.id.clock_frame) ?: return
+         val params = clockFrame.layoutParams as? ViewGroup.MarginLayoutParams ?: return
+-        params.topMargin = (clockFrameMarginTop * resources.displayMetrics.density).toInt()
++        val density = resources.displayMetrics.density
++        params.topMargin = (clockFrameMarginTop * density).toInt()
++        if (!isNoHorizontalMarginClock(clockStyle)) {
++            params.marginStart = (clockFrameMarginStart * density).toInt()
++        } else {
++            params.marginStart = 0
++        }
+         clockFrame.layoutParams = params
+     }
+ 
+@@ -391,102 +510,145 @@ class ClockStyle @JvmOverloads constructor(
+         view.alpha = effective / 100f
+     }
+ 
+-    private fun resolveClockColor(): Int = when (colorMode) {
+-        COLOR_MODE_ACCENT -> context.getColor(
+-            resources.getIdentifier("system_accent1_100", "color", "android")
+-        )
+-        COLOR_MODE_CUSTOM -> customColor
+-        else -> context.getColor(android.R.color.white)
++    private fun resolveClockColor(): Int {
++        if (albumArtColorEnabled) {
++            currentAlbumColor?.let {
++                return boostSaturation(it)
++            }
++        }
++        return when (colorMode) {
++            COLOR_MODE_ACCENT -> context.getColor(
++                resources.getIdentifier("system_accent1_100", "color", "android")
++            )
++            COLOR_MODE_CUSTOM -> customColor
++            else -> context.getColor(android.R.color.white)
++        }
+     }
+ 
+-    private fun resolveGradientColors(): Pair<Int, Int> {
+-        val primary = context.getColor(com.android.internal.R.color.materialColorPrimary)
+-        val secondary = context.getColor(com.android.internal.R.color.materialColorSecondary)
++    private fun boostSaturation(color: Int, amount: Float = 0.20f): Int {
++        val hsv = FloatArray(3)
++        colorToHSV(color, hsv)
++        hsv[1] = (hsv[1] + amount).coerceAtMost(1.0f)
++        return HSVToColor(hsv)
++    }
+ 
+-        if (gradientColorMode == 1) {
+-            val startColor = if (gradientStartColor != 0) gradientStartColor else primary
+-            val endColor = if (gradientEndColor != 0) gradientEndColor else secondary
+-            return Pair(startColor, endColor)
++    private fun getOffsetWithinAncestor(view: View, ancestor: View): Pair<Int, Int> {
++        var offsetX = 0
++        var offsetY = 0
++        var current: View = view
++        while (current !== ancestor) {
++            offsetX += current.left
++            offsetY += current.top
++            val parent = current.parent as? View ?: break
++            current = parent
+         }
+-
+-        return Pair(primary, secondary)
++        return offsetX to offsetY
+     }
+ 
+-    private fun applyGradient(tv: TextView, startColor: Int, endColor: Int) {
+-        val shader = LinearGradient(
+-            0f, 0f, 0f, tv.textSize,
+-            startColor, endColor,
+-            Shader.TileMode.CLAMP
++    private fun buildGradientShader(
++        width: Int,
++        height: Int,
++        offsetX: Int = 0,
++        offsetY: Int = 0,
++    ): Shader {
++        val rad = Math.toRadians(gradientAngleDeg.toDouble())
++        val dx = cos(rad).toFloat()
++        val dy = sin(rad).toFloat()
++        val cx = width / 2f
++        val cy = height * (gradientAnchorY / 100f)
++        val halfW = width / 2f
++        val halfH = height / 2f
++        val baseLen = abs(dx * halfW) + abs(dy * halfH)
++        val len = baseLen * (gradientRadius / 100f)
++        val x0 = cx - dx * len - offsetX
++        val y0 = cy - dy * len - offsetY
++        val x1 = cx + dx * len - offsetX
++        val y1 = cy + dy * len - offsetY
++        return LinearGradient(
++            x0, y0, x1, y1,
++            gradientColorStart, gradientColorEnd,
++            Shader.TileMode.CLAMP,
+         )
+-        tv.paint.shader = shader
+-        tv.invalidate()
++    }
++
++    private fun applyGradientToView(view: TextView) {
++        val container = currentClockView ?: return
++        if (view.width <= 0 || view.height <= 0) return
++        if (container.width <= 0 || container.height <= 0) return
++        val (offsetX, offsetY) = getOffsetWithinAncestor(view, container)
++        view.paint.shader = buildGradientShader(container.width, container.height, offsetX, offsetY)
++        view.invalidate()
++    }
++
++    private fun clearGradientFromView(view: TextView) {
++        if (view.paint.shader != null) {
++            view.paint.shader = null
++            view.invalidate()
++        }
++    }
++
++    private fun attachClockSizeListener(view: View) {
++        clockSizeListener?.let { currentClockView?.removeOnLayoutChangeListener(it) }
++        val listener = View.OnLayoutChangeListener { v, l, t, r, b, ol, ot, oR, ob ->
++            if (r - l != oR - ol || b - t != ob - ot) {
++                if (gradientEnabled) applyClockColors()
++            }
++        }
++        clockSizeListener = listener
++        view.addOnLayoutChangeListener(listener)
+     }
+ 
+     private fun applyClockColors() {
+         if (isNoColorClock(clockStyle) || textClocks.isEmpty()) return
+         val whiteColor = context.getColor(android.R.color.white)
+-        val forceWhiteInAod = isDozing &&
+-            (clockGradientEnabled || colorMode == COLOR_MODE_ACCENT || colorMode == COLOR_MODE_CUSTOM)
+-
+-        val (gradStart, gradEnd) = resolveGradientColors()
+-
++        val useGradient = gradientEnabled && !isDozing
+         for (i in textClocks.indices) {
+             val tc = textClocks[i]
+-            if (tc.getTag(R.id.original_typeface) == null && tc.typeface != null) {
+-                tc.setTag(R.id.original_typeface, tc.typeface)
+-            }
+-            if (tc.getTag(R.id.original_text_color) == null) {
+-                tc.setTag(R.id.original_text_color, tc.currentTextColor)
+-            }
+             (tc.getTag(R.id.original_typeface) as? Typeface)?.let { tc.typeface = it }
+-
+-            val originalColor = tc.getTag(R.id.original_text_color) as Int
++            val originalColor = tc.getTag(R.id.original_text_color) as? Int ?: tc.currentTextColor
+             val isWhiteOriginal = (originalColor and 0x00FFFFFF) == (whiteColor and 0x00FFFFFF)
+-
+-            if (clockGradientEnabled && !isDozing) {
+-                if (isWhiteOriginal) {
+-                    applyGradient(tc, gradStart, gradEnd)
+-                } else {
+-                    tc.paint.shader = null
++            when {
++                isDozing -> {
++                    clearGradientFromView(tc)
++                    tc.setTextColor(whiteColor)
++                }
++                !isWhiteOriginal -> {
++                    clearGradientFromView(tc)
+                     tc.setTextColor(originalColor)
+                 }
+-            } else {
+-                tc.paint.shader = null
+-                tc.setTextColor(
+-                    when {
+-                        !isWhiteOriginal -> originalColor
+-                        forceWhiteInAod -> whiteColor
+-                        else -> resolveClockColor()
+-                    }
+-                )
++                useGradient -> {
++                    tc.setTextColor(Color.WHITE)
++                    applyGradientToView(tc)
++                }
++                else -> {
++                    clearGradientFromView(tc)
++                    tc.setTextColor(resolveClockColor())
++                }
+             }
+         }
+ 
+         for (i in styledTextViews.indices) {
+             val tv = styledTextViews[i]
+             if (tv is TextClock) continue
+-            if (tv.getTag(R.id.original_text_color) == null) {
+-                tv.setTag(R.id.original_text_color, tv.currentTextColor)
+-            }
+-            val originalColor = tv.getTag(R.id.original_text_color) as Int
++            val originalColor = tv.getTag(R.id.original_text_color) as? Int ?: tv.currentTextColor
+             val isWhiteOriginal = (originalColor and 0x00FFFFFF) == (whiteColor and 0x00FFFFFF)
+-
+-            if (clockGradientEnabled && !isDozing) {
+-                if (isWhiteOriginal) {
+-                    applyGradient(tv, gradStart, gradEnd)
+-                } else {
+-                    tv.paint.shader = null
++            when {
++                isDozing -> {
++                    clearGradientFromView(tv)
++                    tv.setTextColor(whiteColor)
++                }
++                !isWhiteOriginal -> {
++                    clearGradientFromView(tv)
+                     tv.setTextColor(originalColor)
+                 }
+-            } else {
+-                tv.paint.shader = null
+-                tv.setTextColor(
+-                    when {
+-                        isDozing -> whiteColor
+-                        !isWhiteOriginal -> originalColor
+-                        else -> resolveClockColor()
+-                    }
+-                )
++                useGradient -> {
++                    tv.setTextColor(Color.WHITE)
++                    applyGradientToView(tv)
++                }
++                else -> {
++                    clearGradientFromView(tv)
++                    tv.setTextColor(resolveClockColor())
++                }
+             }
+         }
+     }
+@@ -494,33 +656,58 @@ class ClockStyle @JvmOverloads constructor(
+     private fun getScaleFactor(): Float =
+         clockSizeScale.coerceIn(MIN_CLOCK_SIZE, MAX_CLOCK_SIZE) / 100f
+ 
+-    private fun getCurrentScale(): Float =
+-        if (isDozing) AOD_SCALE_DOWN else getScaleFactor()
+-
+-    @com.android.internal.annotations.VisibleForTesting
+-    fun applyClockScale() {
++    private fun applyClockScale() {
+         val view = currentClockView ?: return
+-        val scale = getCurrentScale()
++        val scale = getScaleFactor()
+         view.scaleX = scale
+         view.scaleY = scale
+         view.pivotX = view.width / 2f
+-        view.pivotY = 0f
++        view.pivotY = view.height / 2f
+         disableClippingOnParents(view)
+-        requestLayout()
++        if (naturalClockHeight == 0 && view.height > 0) {
++            naturalClockHeight = view.height
++        }
++
++        if (naturalClockHeight > 0) {
++            val scaledHeight = (naturalClockHeight * scale).toInt()
++            val container = clockContainer ?: return
++            if (scale >= 1.0f) {
++                container.minimumHeight = scaledHeight
++                val lp = container.layoutParams
++                if (lp != null) {
++                    lp.height = ViewGroup.LayoutParams.WRAP_CONTENT
++                    container.layoutParams = lp
++                }
++            } else {
++                container.minimumHeight = 0
++                val lp = container.layoutParams
++                if (lp != null) {
++                    lp.height = scaledHeight
++                    container.layoutParams = lp
++                }
++            }
++            container.requestLayout()
++        }
+     }
+ 
+-    @com.android.internal.annotations.VisibleForTesting
+-    fun applyClockScaleAfterLayout(view: View) {
++    private fun applyClockScaleAfterLayout(view: View) {
++        if (view.width > 0) {
++            applyClockScale()
++            return
++        }
+         removePendingLayoutListener()
+-        applyClockScale()
+         val listener = object : View.OnLayoutChangeListener {
+             override fun onLayoutChange(
+                 v: View, l: Int, t: Int, r: Int, b: Int,
+                 ol: Int, ot: Int, oR: Int, ob: Int,
+             ) {
+-                if (l != ol || r != oR || t != ot || b != ob) {
+-                    applyClockScale()
++                v.removeOnLayoutChangeListener(this)
++                if (pendingLayoutListener === this) pendingLayoutListener = null
++                if (naturalClockHeight == 0) {
++                    naturalClockHeight = v.height
+                 }
++                applyClockScale()
++                if (gradientEnabled) applyClockColors()
+             }
+         }
+         pendingLayoutListener = listener
+@@ -547,109 +734,253 @@ class ClockStyle @JvmOverloads constructor(
+         }
+     }
+ 
+-    private fun isNoColorClock(style: Int): Boolean {
+-        return style in CLOCK_LAYOUTS.indices && NO_COLOR_CLOCKS.contains(CLOCK_LAYOUTS[style])
++    private fun isNoColorClock(style: Int): Boolean = NO_COLOR_CLOCKS.contains(style)
++    private fun isNoHorizontalMarginClock(style: Int): Boolean = NO_HORIZONTAL_MARGIN_CLOCKS.contains(style)
++
++    private fun startWobbleAnimation() {
++        val view = currentClockView ?: return
++        cancelWobbleAnimation()
++
++        val base = getScaleFactor()
++        view.setLayerType(View.LAYER_TYPE_HARDWARE, null)
++
++        val density = resources.displayMetrics.density.takeIf { it > 0f } ?: 1f
++        val riseAmp = WOBBLE_RISE_DP * density * base
++        val ty0 = Keyframe.ofFloat(0.00f,  0f)
++        val ty1 = Keyframe.ofFloat(0.18f, -riseAmp)
++        val ty2 = Keyframe.ofFloat(0.36f, -riseAmp * 0.44f)
++        val ty3 = Keyframe.ofFloat(0.52f, -riseAmp * 0.21f)
++        val ty4 = Keyframe.ofFloat(0.66f, -riseAmp * 0.09f)
++        val ty5 = Keyframe.ofFloat(0.78f, -riseAmp * 0.04f)
++        val ty6 = Keyframe.ofFloat(1.00f,  0f)   
++        val pvhY = PropertyValuesHolder.ofKeyframe("translationY", ty0, ty1, ty2, ty3, ty4, ty5, ty6)
++
++        val sx0 = Keyframe.ofFloat(0.00f, base * 1.000f)
++        val sx1 = Keyframe.ofFloat(0.18f, base * 0.940f)
++        val sx2 = Keyframe.ofFloat(0.36f, base * 1.018f)
++        val sx3 = Keyframe.ofFloat(0.52f, base * 0.968f)
++        val sx4 = Keyframe.ofFloat(0.66f, base * 1.008f)
++        val sx5 = Keyframe.ofFloat(1.00f, base * 1.000f)
++        val pvhSX = PropertyValuesHolder.ofKeyframe("scaleX", sx0, sx1, sx2, sx3, sx4, sx5)
++
++        val sy0 = Keyframe.ofFloat(0.00f, base * 1.000f)
++        val sy1 = Keyframe.ofFloat(0.18f, base * 1.038f)
++        val sy2 = Keyframe.ofFloat(0.36f, base * 0.984f)
++        val sy3 = Keyframe.ofFloat(0.52f, base * 1.018f)
++        val sy4 = Keyframe.ofFloat(0.66f, base * 0.994f)
++        val sy5 = Keyframe.ofFloat(1.00f, base * 1.000f)
++        val pvhSY = PropertyValuesHolder.ofKeyframe("scaleY", sy0, sy1, sy2, sy3, sy4, sy5)
++
++        wobbleAnimator = ObjectAnimator.ofPropertyValuesHolder(view, pvhY, pvhSX, pvhSY).apply {
++            duration = WOBBLE_DURATION_MS
++            interpolator = null
++            addListener(object : AnimatorListenerAdapter() {
++                override fun onAnimationEnd(animation: Animator) {
++                    view.translationY = 0f
++                    view.scaleX = getScaleFactor()
++                    view.scaleY = getScaleFactor()
++                    view.setLayerType(View.LAYER_TYPE_NONE, null)
++                    clearWobbleGlow()
++                    wobbleAnimator = null
++                }
++                override fun onAnimationCancel(animation: Animator) {
++                    view.translationY = 0f
++                    view.scaleX = getScaleFactor()
++                    view.scaleY = getScaleFactor()
++                    view.setLayerType(View.LAYER_TYPE_NONE, null)
++                    clearWobbleGlow()
++                    wobbleAnimator = null
++                }
++            })
++            start()
++        }
++
++        val baseGlowColor = resolveClockColor()
++        val baseHsv = FloatArray(3)
++        Color.colorToHSV(baseGlowColor, baseHsv)
++        val warmS = 1.0f
++        val warmV = 1.0f
++
++        val userAlphaNorm = (clockOpacity.coerceIn(0, 100) / 100f)
++
++        wobbleGlowAnimator = android.animation.ValueAnimator.ofFloat(0f, 1f).apply {
++            duration = WOBBLE_DURATION_MS
++            interpolator = null
++            addUpdateListener { anim ->
++                val animFrac = anim.animatedFraction
++                val currentTY = view.translationY
++                val fraction = (-currentTY / riseAmp).coerceIn(0f, 1f)
++                val flashAlpha: Float = when {
++                    animFrac < 0.06f -> userAlphaNorm + (1f - userAlphaNorm) * (animFrac / 0.06f)
++                    animFrac < 0.12f -> 1f - (1f - userAlphaNorm) * ((animFrac - 0.06f) / 0.06f)
++                    else -> userAlphaNorm
++                }
++
++                val lerpedHsv = floatArrayOf(
++                    baseHsv[0],
++                    baseHsv[1] + (warmS - baseHsv[1]) * fraction,
++                    baseHsv[2] + (warmV - baseHsv[2]) * fraction,
++                )
++
++                val shiftedBaseColor = Color.HSVToColor(lerpedHsv)
++                val radius = WOBBLE_GLOW_MAX_RADIUS * fraction
++                val dy = WOBBLE_GLOW_MAX_DY * (1f - fraction)
++                val alpha = (WOBBLE_GLOW_MAX_ALPHA * fraction).toInt().coerceIn(0, 255)
++                val currentGlowColor = Color.argb(
++                    alpha,
++                    Color.red(shiftedBaseColor),
++                    Color.green(shiftedBaseColor),
++                    Color.blue(shiftedBaseColor),
++                )
++
++                for (i in textClocks.indices) {
++                    val tc = textClocks[i]
++                    val origAlpha = tc.getTag(R.id.original_alpha) as? Float ?: 1f
++                    tc.alpha = flashAlpha * origAlpha
++                    tc.setShadowLayer(radius, 0f, dy, currentGlowColor)
++                }
++                for (i in styledTextViews.indices) {
++                    val tv = styledTextViews[i]
++                    if (tv !is android.widget.TextClock) {
++                        val origAlpha = tv.getTag(R.id.original_alpha) as? Float ?: 1f
++                        tv.alpha = flashAlpha * origAlpha
++                        tv.setShadowLayer(radius, 0f, dy, currentGlowColor)
++                    }
++                }
++            }
++            start()
++        }
++    }
++
++    private fun cancelWobbleAnimation() {
++        wobbleAnimator?.cancel()
++        wobbleAnimator = null
++        wobbleGlowAnimator?.cancel()
++        wobbleGlowAnimator = null
++        clearWobbleGlow()
++    }
++
++    private fun clearWobbleGlow() {
++        for (i in textClocks.indices) {
++            val tc = textClocks[i]
++            val origAlpha = tc.getTag(R.id.original_alpha) as? Float ?: 1f
++            tc.alpha = (clockOpacity / 100f) * origAlpha
++            tc.setShadowLayer(0f, 0f, 0f, 0)
++        }
++        for (i in styledTextViews.indices) {
++            val tv = styledTextViews[i]
++            if (tv !is android.widget.TextClock) {
++                val origAlpha = tv.getTag(R.id.original_alpha) as? Float ?: 1f
++                tv.alpha = (clockOpacity / 100f) * origAlpha
++                tv.setShadowLayer(0f, 0f, 0f, 0)
++            }
++        }
+     }
+ 
+     companion object {
++        // Used by AODStyle and KeyguardClockStyleSection.
++        @JvmField val CLOCK_STYLE_KEY: String = Settings.Secure.LOCK_SCREEN_CUSTOM_CLOCK_STYLE
++        @JvmField val CLOCK_FRAME_MARGIN_TOP_KEY: String =
++            Settings.Secure.LOCK_SCREEN_CUSTOM_CLOCK_MARGIN_TOP
++
+         private val CLOCK_LAYOUTS = intArrayOf(
+             0,
+-            R.layout.keyguard_clock_none,
+-            R.layout.keyguard_clock_oos,
+-            R.layout.keyguard_clock_oos2,
+-            R.layout.keyguard_clock_center,
+-            R.layout.keyguard_clock_ios,
+-            R.layout.keyguard_clock_ios2,
+-            R.layout.keyguard_clock_ios3,
+-            R.layout.keyguard_clock_ios4,
+-            R.layout.keyguard_clock_ios5,
+-            R.layout.keyguard_clock_ios6,
+-            R.layout.keyguard_clock_ios7,
+-            R.layout.keyguard_clock_ios8,
+-            R.layout.keyguard_clock_ios9,
+-            R.layout.keyguard_clock_ios10,
+-            R.layout.keyguard_clock_ios11,
+-            R.layout.keyguard_clock_ios12,
+-            R.layout.keyguard_clock_ios13,
+-            R.layout.keyguard_clock_ios14,
+-            R.layout.keyguard_clock_ios15,
+-            R.layout.keyguard_clock_ios16,
+-            R.layout.keyguard_clock_ios17,
+-            R.layout.keyguard_clock_ios18,
+-            R.layout.keyguard_clock_ios19,
+-            R.layout.keyguard_clock_miui,
+-            R.layout.keyguard_clock_miui2,
+-            R.layout.keyguard_clock_cos1,
+-            R.layout.keyguard_clock_cos2,
+-            R.layout.keyguard_clock_oppo,
+-            R.layout.keyguard_clock_simple,
+-            R.layout.keyguard_clock_ide,
+-            R.layout.keyguard_clock_moto,
+-            R.layout.keyguard_clock_stylish,
+-            R.layout.keyguard_clock_stylish2,
+-            R.layout.keyguard_clock_stylish3,
+-            R.layout.keyguard_clock_stylish4,
+-            R.layout.keyguard_clock_stylish5,
+-            R.layout.keyguard_clock_stylish6,
+-            R.layout.keyguard_clock_stylish7,
+-            R.layout.keyguard_clock_stylish8,
+-            R.layout.keyguard_clock_stylish9,
+-            R.layout.keyguard_clock_stylish10,
+-            R.layout.keyguard_clock_word,
+-            R.layout.keyguard_clock_life,
+-            R.layout.keyguard_clock_a9,
+-            R.layout.keyguard_clock_nos1,
+-            R.layout.keyguard_clock_nos2,
+-            R.layout.keyguard_clock_space_age,
+-            R.layout.keyguard_clock_polyline,
+-            R.layout.keyguard_clock_num,
+-            R.layout.keyguard_clock_accent,
+-            R.layout.keyguard_clock_analog,
+-            R.layout.keyguard_clock_block,
+-            R.layout.keyguard_clock_bubble,
+-            R.layout.keyguard_anci_clock_outline,
+-            R.layout.keyguard_anci_clock_ovalium,
+-            R.layout.keyguard_anci_clock_rectangle,
+-            R.layout.keyguard_anci_clock_wallet,
+-            R.layout.keyguard_anci_clockdate_clavicula,
+-            R.layout.keyguard_anci_clockdate_kln,
+-            R.layout.keyguard_anci_clockdate_miring,
+-            R.layout.keyguard_anci_clockdate_scapula,
+-            R.layout.keyguard_anci_clockdate_sternum,
+-            R.layout.keyguard_sparkCircle,
+-            R.layout.keyguard_sparkList,
+-            R.layout.keyguard_clock_big1,
+-            R.layout.keyguard_clock_big2,
+-            R.layout.keyguard_clock_big3,
+-            R.layout.keyguard_clock_big4,
+-            R.layout.keyguard_clock_sweet,
+-            R.layout.keyguard_clock_pixel,
+-            R.layout.keyguard_clock_samurai,
+-            R.layout.keyguard_clock_gateway,
+-            R.layout.keyguard_clock_tall,
+-            R.layout.keyguard_clock_gobold,
+-            R.layout.keyguard_clock_gobold2,
+-            R.layout.keyguard_clock_delirium,
+-            R.layout.keyguard_clock_deliriumdual,
+-            R.layout.keyguard_clock_skewrom,
+-            R.layout.keyguard_clock_skewrom2,
+-            R.layout.keyguard_clock_taller,
+-            R.layout.keyguard_clock_taller2,
+-            R.layout.keyguard_clock_taller3,
+-            R.layout.keyguard_clock_modak,
+-            R.layout.keyguard_clock_galada,
+-            R.layout.keyguard_clock_neu,
+-            R.layout.keyguard_clock_neu2,
+-            R.layout.keyguard_clock_neu3,
+-            R.layout.keyguard_clock_badeen,
++            R.layout.keyguard_clock_oos,            // 1
++            R.layout.keyguard_clock_oos2,           // 2
++            R.layout.keyguard_clock_center,         // 3
++            R.layout.keyguard_clock_simple,         // 4
++            R.layout.keyguard_clock_miui,           // 5
++            R.layout.keyguard_clock_ide,            // 6
++            R.layout.keyguard_clock_moto,           // 7
++            R.layout.keyguard_clock_stylish,        // 8
++            R.layout.keyguard_clock_stylish2,       // 9
++            R.layout.keyguard_clock_stylish3,       // 10
++            R.layout.keyguard_clock_stylish4,       // 11
++            R.layout.keyguard_clock_stylish5,       // 12
++            R.layout.keyguard_clock_stylish6,       // 13
++            R.layout.keyguard_clock_stylish7,       // 14
++            R.layout.keyguard_clock_stylish8,       // 15
++            R.layout.keyguard_clock_stylish9,       // 16
++            R.layout.keyguard_clock_stylish10,      // 17
++            R.layout.keyguard_clock_word,           // 18
++            R.layout.keyguard_clock_life,           // 19
++            R.layout.keyguard_clock_a9,             // 20
++            R.layout.keyguard_clock_nos1,           // 21
++            R.layout.keyguard_clock_nos2,           // 22
++            R.layout.keyguard_clock_num,            // 23
++            R.layout.keyguard_clock_accent,         // 24
++            R.layout.keyguard_clock_analog,         // 25
++            R.layout.keyguard_clock_block,          // 26
++            R.layout.keyguard_clock_bubble,         // 27
++            R.layout.keyguard_clock_label,          // 28
++            R.layout.keyguard_clock_ios,            // 29
++            R.layout.keyguard_clock_taden,          // 30
++            R.layout.keyguard_clock_mont,           // 31
++            R.layout.keyguard_clock_encode,         // 32
++            R.layout.keyguard_clock_nos3,           // 33
++            R.layout.keyguard_anci_clock_outline,   // 34
++            R.layout.keyguard_anci_clock_ovalium,   // 35
++            R.layout.keyguard_anci_clock_rectangle, // 36
++            R.layout.keyguard_anci_clock_wallet,    // 37
++            R.layout.keyguard_anci_clockdate_clavicula, // 38
++            R.layout.keyguard_anci_clockdate_kln,   // 39
++            R.layout.keyguard_anci_clockdate_miring, // 40
++            R.layout.keyguard_anci_clockdate_scapula, // 41
++            R.layout.keyguard_anci_clockdate_sternum, // 42
++            R.layout.keyguard_sparkCircle,          // 43
++            R.layout.keyguard_sparkList,            // 44
++            R.layout.keyguard_clock_miui2,          // 45
++            R.layout.keyguard_clock_ios2,           // 46
++            R.layout.keyguard_clock_ios3,           // 47
++            R.layout.keyguard_clock_ios4,           // 48
++            R.layout.keyguard_clock_ios5,           // 49
++            R.layout.keyguard_clock_ios6,           // 50
++            R.layout.keyguard_clock_ios7,           // 51
++            R.layout.keyguard_clock_ios8,           // 52
++            R.layout.keyguard_clock_ios9,           // 53
++            R.layout.keyguard_clock_ios10,          // 54
++            R.layout.keyguard_clock_ios11,          // 55
++            R.layout.keyguard_clock_ios12,          // 56
++            R.layout.keyguard_clock_ios13,          // 57
++            R.layout.keyguard_clock_ios14,          // 58
++            R.layout.keyguard_clock_ios15,          // 59
++            R.layout.keyguard_clock_ios16,          // 60
++            R.layout.keyguard_clock_ios17,          // 61
++            R.layout.keyguard_clock_ios18,          // 62
++            R.layout.keyguard_clock_ios19,          // 63
++            R.layout.keyguard_clock_big1,           // 64
++            R.layout.keyguard_clock_big2,           // 65
++            R.layout.keyguard_clock_big3,           // 66
++            R.layout.keyguard_clock_big4,           // 67
++            R.layout.keyguard_clock_sweet,          // 68
++            R.layout.keyguard_clock_pixel,          // 69
++            R.layout.keyguard_clock_samurai,        // 70
++            R.layout.keyguard_clock_gateway,        // 71
++            R.layout.keyguard_clock_tall,           // 72
++            R.layout.keyguard_clock_gobold,         // 73
++            R.layout.keyguard_clock_gobold2,        // 74
++            R.layout.keyguard_clock_delirium,       // 75
++            R.layout.keyguard_clock_deliriumdual,   // 76
++            R.layout.keyguard_clock_skewrom,        // 77
++            R.layout.keyguard_clock_skewrom2,       // 78
++            R.layout.keyguard_clock_taller,         // 79
++            R.layout.keyguard_clock_taller2,        // 80
++            R.layout.keyguard_clock_taller3,        // 81
++            R.layout.keyguard_clock_modak,          // 82
++            R.layout.keyguard_clock_galada,         // 83
++            R.layout.keyguard_clock_cos1,           // 84
++            R.layout.keyguard_clock_cos2,           // 85
++            R.layout.keyguard_clock_neu,            // 86
++            R.layout.keyguard_clock_neu2,           // 87
++            R.layout.keyguard_clock_neu3,           // 88
++            R.layout.keyguard_clock_badeen,         // 89
++            R.layout.keyguard_clock_space_age,      // 90
++            R.layout.keyguard_clock_polyline,       // 91
++            R.layout.keyguard_clock_oppo,           // 92
+         )
+ 
+-        private val NO_COLOR_CLOCKS = hashSetOf(
+-            R.layout.keyguard_clock_oos,
+-            R.layout.keyguard_clock_oos2,
+-            R.layout.keyguard_clock_bubble,
+-            R.layout.keyguard_clock_block
+-        )
++        private val NO_COLOR_CLOCKS = hashSetOf(1, 2, 25, 26)
++        private val NO_HORIZONTAL_MARGIN_CLOCKS = hashSetOf(45, 73, 74)
+ 
+         @JvmField val CLOCK_STYLE_KEY: String = Settings.Secure.LOCK_SCREEN_CUSTOM_CLOCK_STYLE
+         @JvmField val CLOCK_COLOR_MODE_KEY: String = Settings.Secure.LOCK_SCREEN_CUSTOM_CLOCK_COLOR_MODE
+@@ -657,11 +988,15 @@ class ClockStyle @JvmOverloads constructor(
+         @JvmField val CLOCK_TEXT_OPACITY_KEY: String = Settings.Secure.LOCK_SCREEN_CUSTOM_CLOCK_OPACITY
+         @JvmField val CLOCK_FRAME_MARGIN_TOP_KEY: String = Settings.Secure.LOCK_SCREEN_CUSTOM_CLOCK_MARGIN_TOP
+         @JvmField val CLOCK_SIZE_KEY: String = Settings.Secure.LOCK_SCREEN_CUSTOM_CLOCK_SIZE
+-
+-        @JvmField val CLOCK_GRADIENT_ENABLED_KEY: String = "system:" + Settings.System.LOCK_SCREEN_CUSTOM_CLOCK_GRADIENT
+-        @JvmField val GRADIENT_COLOR_MODE_KEY: String = "system:" + Settings.System.CUSTOM_GRADIENT_COLOR_MODE
+-        @JvmField val GRADIENT_START_COLOR_KEY: String = "system:" + Settings.System.CUSTOM_GRADIENT_START_COLOR
+-        @JvmField val GRADIENT_END_COLOR_KEY: String = "system:" + Settings.System.CUSTOM_GRADIENT_END_COLOR
++        @JvmField val CLOCK_AOD_ANIM_KEY: String = Settings.Secure.LOCK_SCREEN_CUSTOM_CLOCK_AOD_ANIM
++        @JvmField val CLOCK_ALBUM_ART_COLOR_KEY: String = Settings.Secure.LOCK_SCREEN_CUSTOM_CLOCK_ALBUM_ART_COLOR
++        @JvmField val CLOCK_WOBBLE_ON_CHARGE_KEY: String = Settings.Secure.LOCK_SCREEN_CUSTOM_CLOCK_WOBBLE_ON_CHARGE
++        @JvmField val CLOCK_FRAME_MARGIN_START_KEY: String = Settings.Secure.LOCK_SCREEN_CUSTOM_CLOCK_MARGIN_START
++        @JvmField val CLOCK_GRADIENT_ENABLED_KEY: String = Settings.Secure.LOCK_SCREEN_CUSTOM_CLOCK_GRADIENT_ENABLED
++        @JvmField val CLOCK_GRADIENT_COLOR_START_KEY: String = Settings.Secure.LOCK_SCREEN_CUSTOM_CLOCK_GRADIENT_COLOR_START
++        @JvmField val CLOCK_GRADIENT_COLOR_END_KEY: String = Settings.Secure.LOCK_SCREEN_CUSTOM_CLOCK_GRADIENT_COLOR_END
++        @JvmField val CLOCK_GRADIENT_ANCHOR_Y_KEY: String = Settings.Secure.LOCK_SCREEN_CUSTOM_CLOCK_GRADIENT_ANCHOR_Y
++        @JvmField val CLOCK_GRADIENT_RADIUS_KEY: String = Settings.Secure.LOCK_SCREEN_CUSTOM_CLOCK_GRADIENT_RADIUS
+ 
+         const val COLOR_MODE_DEFAULT = "default"
+         const val COLOR_MODE_ACCENT = "accent"
+@@ -677,12 +1012,29 @@ class ClockStyle @JvmOverloads constructor(
+         private const val DEFAULT_CLOCK_SIZE = 100
+         private const val MIN_CLOCK_SIZE = 50
+         private const val MAX_CLOCK_SIZE = 150
++        private const val DEFAULT_MARGIN_START = 0
++
++        private val DEFAULT_GRADIENT_COLOR_START = 0xFF00E5FF.toInt()
++        private val DEFAULT_GRADIENT_COLOR_END = 0xFFFF2DAA.toInt()
++        private const val DEFAULT_GRADIENT_ANCHOR_Y = 50
++        private const val DEFAULT_GRADIENT_RADIUS = 100
++        private const val MIN_GRADIENT_RADIUS = 25
++        private const val MAX_GRADIENT_RADIUS = 200
+ 
+         private const val AOD_UPDATE_INTERVAL_MILLIS = 60_000L
+         private const val UPDATE_INTERVAL_MILLIS = 15_000L
+ 
++        private const val BURN_IN_PROTECTION_INTERVAL = 10_000L
++        private const val BURN_IN_PROTECTION_MAX_SHIFT = 4
++
+         private const val AOD_SCALE_DOWN = 0.85f
+         private const val AOD_ANIM_OUT_MS = 300L
+         private const val AOD_ANIM_IN_MS = 400L
++
++        private const val WOBBLE_RISE_DP = 26f
++        private const val WOBBLE_DURATION_MS = 1150L
++        private const val WOBBLE_GLOW_MAX_RADIUS = 28f
++        private const val WOBBLE_GLOW_MAX_DY = 6f
++        private const val WOBBLE_GLOW_MAX_ALPHA = 160
+     }
+ }

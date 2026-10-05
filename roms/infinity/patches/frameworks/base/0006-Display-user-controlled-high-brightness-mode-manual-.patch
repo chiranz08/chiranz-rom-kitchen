@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: chiranz <chiranz08@users.noreply.github.com>
 Date: Mon, 5 Oct 2026 03:38:17 +0000
-Subject: [PATCH 6/6] Display: user-controlled high brightness mode (manual
+Subject: [PATCH 06/12] Display: user-controlled high brightness mode (manual
  HBM, custom Auto HBM threshold, no time limit)
 
 ---

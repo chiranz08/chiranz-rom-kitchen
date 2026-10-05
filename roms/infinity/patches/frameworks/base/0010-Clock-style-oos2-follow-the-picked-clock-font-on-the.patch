@@ -1,0 +1,64 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: chiranz <chiranz08@users.noreply.github.com>
+Date: Mon, 5 Oct 2026 09:33:53 +0000
+Subject: [PATCH 10/12] Clock style oos2: follow the picked clock font on the
+ lock screen, like its preview
+
+---
+ .../res-keyguard/layout/keyguard_clock_oos2.xml   | 15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
+
+diff --git a/packages/SystemUI/res-keyguard/layout/keyguard_clock_oos2.xml b/packages/SystemUI/res-keyguard/layout/keyguard_clock_oos2.xml
+index 46fedcece..250f376cc 100644
+--- a/packages/SystemUI/res-keyguard/layout/keyguard_clock_oos2.xml
++++ b/packages/SystemUI/res-keyguard/layout/keyguard_clock_oos2.xml
+@@ -19,7 +19,8 @@
+         <TextClock
+             android:textSize="30dp"
+             android:textColor="@android:color/white"
+-            android:fontFamily="@font/SlateForOnePlus-Medium"
++            android:fontFamily="@*android:string/config_clockFontFamily"
++            android:textFontWeight="500"
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:layout_gravity="start"
+@@ -43,7 +44,8 @@
+             <TextClock
+                 android:textSize="96dp"
+                 android:textColor="@android:color/holo_red_light"
+-                android:fontFamily="@font/SlateForOnePlus-Bold"
++                android:fontFamily="@*android:string/config_clockFontFamily"
++            android:textFontWeight="700"
+                 android:layout_width="wrap_content"
+                 android:layout_height="wrap_content"
+                 android:singleLine="true"
+@@ -57,7 +59,8 @@
+             <TextClock
+                 android:textSize="96dp"
+                 android:textColor="@android:color/white"
+-                android:fontFamily="@font/SlateForOnePlus-Bold"
++                android:fontFamily="@*android:string/config_clockFontFamily"
++            android:textFontWeight="700"
+                 android:layout_width="wrap_content"
+                 android:layout_height="wrap_content"
+                 android:singleLine="true"
+@@ -80,7 +83,8 @@
+             <TextClock
+                 android:textSize="20dp"
+                 android:textColor="@android:color/white"
+-                android:fontFamily="@font/SlateForOnePlus-Regular"
++                android:fontFamily="@*android:string/config_clockFontFamily"
++            android:textFontWeight="400"
+                 android:layout_width="wrap_content"
+                 android:layout_height="wrap_content"
+                 android:singleLine="true"
+@@ -103,7 +107,8 @@
+                 android:layout_width="wrap_content"
+                 android:layout_height="wrap_content"
+                 android:layout_marginStart="2dp"
+-                android:fontFamily="@font/SlateForOnePlus-Regular"
++                android:fontFamily="@*android:string/config_clockFontFamily"
++            android:textFontWeight="400"
+                 android:textColor="@android:color/white"
+                 android:visibility="gone"
+                 android:textSize="21dp"/>

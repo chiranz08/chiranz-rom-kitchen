@@ -1,0 +1,247 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: chiranz <chiranz08@users.noreply.github.com>
+Date: Mon, 5 Oct 2026 11:04:42 +0000
+Subject: [PATCH 15/16] Clock customizer: clock font picker (fonts drawn in
+ their own face); gallery category filters
+
+---
+ res/values/clock_customizer_strings.xml       |   8 +
+ .../lockscreen/ClockCustomizerScreen.kt       | 187 +++++++++++++++++-
+ 2 files changed, 194 insertions(+), 1 deletion(-)
+
+diff --git a/res/values/clock_customizer_strings.xml b/res/values/clock_customizer_strings.xml
+index 48902b1..413e4f1 100644
+--- a/res/values/clock_customizer_strings.xml
++++ b/res/values/clock_customizer_strings.xml
+@@ -27,4 +27,12 @@
+     <string name="clock_styles_all_title">All clock styles</string>
+     <string name="clock_styles_all_summary">Tap a style to use it</string>
+     <string name="clock_style_number">Style <xliff:g id="number">%1$d</xliff:g></string>
++    <string name="clock_font_title">Clock font</string>
++    <string name="clock_category_all">All</string>
++    <string name="clock_category_ios">iOS</string>
++    <string name="clock_category_oneplus">OnePlus &amp; Oppo</string>
++    <string name="clock_category_nothing">Nothing</string>
++    <string name="clock_category_bold">Big &amp; bold</string>
++    <string name="clock_category_cards">Cards &amp; widgets</string>
++    <string name="clock_category_other">Other</string>
+ </resources>
+diff --git a/src/com/android/settings/lockscreen/ClockCustomizerScreen.kt b/src/com/android/settings/lockscreen/ClockCustomizerScreen.kt
+index cca1151..4a9ab97 100644
+--- a/src/com/android/settings/lockscreen/ClockCustomizerScreen.kt
++++ b/src/com/android/settings/lockscreen/ClockCustomizerScreen.kt
+@@ -705,6 +705,132 @@ private fun StyleTabContent(
+                 )
+             }
+         }
++
++        ClockFontPicker()
++    }
++}
++
++private const val CLOCK_FONT_CATEGORY = "android.theme.customization.lockscreen_clock_font"
++
++private data class ClockFontOption(
++    val packageName: String?,
++    val label: String,
++    val typeface: android.graphics.Typeface?
++)
++
++/** Clock font overlays (lockscreen_clock_font category), "Default" first. */
++private fun loadClockFontOptions(context: android.content.Context): List<ClockFontOption> {
++    val om = context.getSystemService(android.content.om.OverlayManager::class.java)
++        ?: return emptyList()
++    val pm = context.packageManager
++    val fonts = runCatching {
++        om.getOverlayInfosForTarget("android", android.os.UserHandle.SYSTEM)
++            .filter { it.category == CLOCK_FONT_CATEGORY }
++    }.getOrDefault(emptyList()).mapNotNull { info ->
++        runCatching {
++            val ai = pm.getApplicationInfo(info.packageName, 0)
++            val res = pm.getResourcesForApplication(ai)
++            val id = res.getIdentifier("config_clockFontFamily", "string", info.packageName)
++            val typeface = if (id != 0) {
++                android.graphics.Typeface.create(res.getString(id), android.graphics.Typeface.NORMAL)
++            } else null
++            ClockFontOption(info.packageName, ai.loadLabel(pm).toString(), typeface)
++        }.getOrNull()
++    }.sortedBy { it.label.lowercase() }
++    return listOf(ClockFontOption(null, context.getString(R.string.default_value), null)) + fonts
++}
++
++private fun currentClockFontPackage(context: android.content.Context): String? {
++    val om = context.getSystemService(android.content.om.OverlayManager::class.java) ?: return null
++    return runCatching {
++        om.getOverlayInfosForTarget("android", android.os.UserHandle.SYSTEM)
++            .firstOrNull { it.category == CLOCK_FONT_CATEGORY && it.isEnabled }?.packageName
++    }.getOrNull()
++}
++
++private fun applyClockFont(context: android.content.Context, packageName: String?) {
++    val om = context.getSystemService(android.content.om.OverlayManager::class.java) ?: return
++    runCatching {
++        if (packageName == null) {
++            currentClockFontPackage(context)?.let {
++                om.setEnabled(it, false, android.os.UserHandle.SYSTEM)
++            }
++        } else {
++            om.setEnabledExclusiveInCategory(packageName, android.os.UserHandle.SYSTEM)
++        }
++    }
++}
++
++/** Row of clock fonts, each drawn in its own face; tapping one applies it (restarts SystemUI). */
++@Composable
++private fun ClockFontPicker() {
++    val context = LocalContext.current
++    val options = remember { loadClockFontOptions(context) }
++    if (options.size <= 1) return
++    var current by remember { mutableStateOf(currentClockFontPackage(context)) }
++
++    Spacer(modifier = Modifier.height(16.dp))
++    Text(
++        text = stringResource(R.string.clock_font_title),
++        style = MaterialTheme.typography.titleMedium,
++        color = MaterialTheme.colorScheme.onSurface
++    )
++    Spacer(modifier = Modifier.height(10.dp))
++    LazyRow(
++        horizontalArrangement = Arrangement.spacedBy(10.dp),
++        contentPadding = PaddingValues(horizontal = 2.dp),
++        modifier = Modifier.fillMaxWidth()
++    ) {
++        items(count = options.size) { i ->
++            val option = options[i]
++            val selected = option.packageName == current
++            val shape = RoundedCornerShape(18.dp)
++            Column(
++                modifier = Modifier.width(92.dp),
++                horizontalAlignment = Alignment.CenterHorizontally
++            ) {
++                Box(
++                    modifier = Modifier
++                        .fillMaxWidth()
++                        .height(64.dp)
++                        .clip(shape)
++                        .border(
++                            width = if (selected) 2.5.dp else 0.dp,
++                            color = if (selected) MaterialTheme.colorScheme.primary else Color.Transparent,
++                            shape = shape
++                        )
++                        .background(Color(0xFF111520))
++                        .clickable {
++                            if (option.packageName != current) {
++                                applyClockFont(context, option.packageName)
++                                current = option.packageName
++                                SystemUtilsNew.restartSystemUI(context)
++                            }
++                        },
++                    contentAlignment = Alignment.Center
++                ) {
++                    Text(
++                        text = "12:45",
++                        color = Color.White,
++                        fontSize = 22.sp,
++                        fontFamily = option.typeface?.let {
++                            androidx.compose.ui.text.font.FontFamily(
++                                androidx.compose.ui.text.font.Typeface(it)
++                            )
++                        } ?: androidx.compose.ui.text.font.FontFamily.Default
++                    )
++                }
++                Spacer(modifier = Modifier.height(4.dp))
++                Text(
++                    text = option.label,
++                    style = MaterialTheme.typography.labelSmall,
++                    color = if (selected) MaterialTheme.colorScheme.primary
++                        else MaterialTheme.colorScheme.onSurfaceVariant,
++                    maxLines = 1,
++                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
++                )
++            }
++        }
+     }
+ }
+ 
+@@ -749,6 +875,39 @@ private fun AllClockStylesDialog(
+                         Text(text = stringResource(android.R.string.cancel))
+                     }
+                 }
++                val context = LocalContext.current
++                val categoryOf = remember {
++                    clockLayouts.mapIndexed { i, res ->
++                        if (i == 0) -1 else clockCategory(
++                            runCatching { context.resources.getResourceEntryName(res) }.getOrDefault("")
++                        )
++                    }
++                }
++                var category by remember { mutableStateOf(-1) }
++                val shown = remember(category) {
++                    clockLayouts.indices.filter { category == -1 || categoryOf[it] == category }
++                }
++                LazyRow(
++                    horizontalArrangement = Arrangement.spacedBy(8.dp),
++                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp),
++                    modifier = Modifier.fillMaxWidth()
++                ) {
++                    val cats = listOf(-1) + CLOCK_CATEGORY_LABELS.indices
++                        .filter { c -> categoryOf.any { it == c } }
++                    items(count = cats.size) { k ->
++                        val c = cats[k]
++                        androidx.compose.material3.FilterChip(
++                            selected = category == c,
++                            onClick = { category = c },
++                            label = {
++                                Text(
++                                    if (c == -1) stringResource(R.string.clock_category_all)
++                                    else stringResource(CLOCK_CATEGORY_LABELS[c])
++                                )
++                            }
++                        )
++                    }
++                }
+                 val gridState = androidx.compose.foundation.lazy.grid.rememberLazyGridState(
+                     initialFirstVisibleItemIndex = selectedStyle.coerceIn(0, clockLayouts.size - 1)
+                 )
+@@ -760,7 +919,8 @@ private fun AllClockStylesDialog(
+                     verticalArrangement = Arrangement.spacedBy(18.dp),
+                     modifier = Modifier.fillMaxSize()
+                 ) {
+-                    items(count = clockLayouts.size) { index ->
++                    items(count = shown.size, key = { shown[it] }) { k ->
++                        val index = shown[k]
+                         ClockStyleTile(
+                             index = index,
+                             layoutRes = clockLayouts[index],
+@@ -895,6 +1055,31 @@ private fun ClockStyleTile(
+ 
+ private val PHONE_WIDTH = 411.dp
+ 
++private val CLOCK_CATEGORY_LABELS = intArrayOf(
++    R.string.clock_category_ios,
++    R.string.clock_category_oneplus,
++    R.string.clock_category_nothing,
++    R.string.clock_category_bold,
++    R.string.clock_category_cards,
++    R.string.clock_category_other,
++)
++
++/** Groups a clock layout by its resource name (index into CLOCK_CATEGORY_LABELS). */
++private fun clockCategory(name: String): Int {
++    val n = name.removePrefix("keyguard_").removePrefix("clock_")
++    fun has(vararg keys: String) = keys.any { n.startsWith(it) }
++    return when {
++        has("ios") -> 0
++        has("oos", "oppo", "cos") -> 1
++        has("nos") -> 2
++        has("big", "tall", "gobold", "modak", "galada", "skewrom", "delirium", "neu", "badeen",
++            "space_age", "polyline", "label", "taden", "mont", "encode", "block", "num", "accent") -> 3
++        has("anci", "spark", "stylish", "life", "word", "bubble", "analog", "sweet", "samurai",
++            "gateway", "pixel") -> 4
++        else -> 5
++    }
++}
++
+ @Composable
+ private fun ClockFaceCard(
+     index: Int,

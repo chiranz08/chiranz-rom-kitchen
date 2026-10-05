@@ -1,0 +1,30 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: chiranz <chiranz08@users.noreply.github.com>
+Date: Mon, 5 Oct 2026 07:48:05 +0000
+Subject: [PATCH 09/12] ClockStyle: keep the normal side padding; start margin
+ is extra space
+
+---
+ .../SystemUI/src/com/android/systemui/clocks/ClockStyle.kt | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/packages/SystemUI/src/com/android/systemui/clocks/ClockStyle.kt b/packages/SystemUI/src/com/android/systemui/clocks/ClockStyle.kt
+index fc7552551..1384256c3 100644
+--- a/packages/SystemUI/src/com/android/systemui/clocks/ClockStyle.kt
++++ b/packages/SystemUI/src/com/android/systemui/clocks/ClockStyle.kt
+@@ -490,9 +490,14 @@ class ClockStyle @JvmOverloads constructor(
+         val density = resources.displayMetrics.density
+         params.topMargin = (clockFrameMarginTop * density).toInt()
+         if (!isNoHorizontalMarginClock(clockStyle)) {
+-            params.marginStart = (clockFrameMarginStart * density).toInt()
++            // The start margin setting is extra space on top of the normal side padding, so the
++            // left edge keeps the same padding as the right one at the default of 0.
++            val sidePadding = resources.getDimensionPixelSize(R.dimen.below_clock_padding_start)
++            params.marginStart = sidePadding + (clockFrameMarginStart * density).toInt()
++            params.marginEnd = sidePadding
+         } else {
+             params.marginStart = 0
++            params.marginEnd = 0
+         }
+         clockFrame.layoutParams = params
+     }

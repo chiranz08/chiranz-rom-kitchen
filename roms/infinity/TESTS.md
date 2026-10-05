@@ -81,3 +81,12 @@ Device: Pixel 8 (shiba). Clean flash with data wipe. Firmware from the zip: boot
 - "Vibrate on gesture" for tap / lift wake works.
 - High brightness mode page and HBM tile work.
 - Verdict: all new items work.
+
+## 2026-10-05 — shiba builds 07:21 → 11:32 UTC (clock styles)
+
+### Hands-on (owner)
+- Pixelify-AOSP clock styles and customizer work; side padding fixed; stock date no longer overlaps the status bar.
+- Style 2 with the iOS font matches its preview, with clean spacing.
+- Customizer scrolls fully; Colour/Misc tabs open (crash fixed, confirmed with the crash log); "See all" gallery and category filters work.
+- Clock font row works and is locked for fixed-font styles.
+- USB mode sheet still not black with pure black (left as is).

@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: chiranz <chiranz08@users.noreply.github.com>
 Date: Mon, 5 Oct 2026 03:14:39 +0000
-Subject: [PATCH 6/7] Sound: Now Playing entry (opens Android System
+Subject: [PATCH 06/16] Sound: Now Playing entry (opens Android System
  Intelligence's or the Now Playing app's settings)
 
 ---

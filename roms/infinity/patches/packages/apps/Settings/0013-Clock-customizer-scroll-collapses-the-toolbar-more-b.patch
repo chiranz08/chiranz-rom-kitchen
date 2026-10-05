@@ -1,0 +1,281 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: chiranz <chiranz08@users.noreply.github.com>
+Date: Mon, 5 Oct 2026 10:07:08 +0000
+Subject: [PATCH 13/16] Clock customizer: scroll collapses the toolbar, more
+ bottom room; gallery of mini lock screens (2 columns, wallpaper, true-scale
+ clock, style number)
+
+---
+ res/values/clock_customizer_strings.xml       |   2 +
+ .../lockscreen/ClockCustomizerScreen.kt       | 173 ++++++++++++++++--
+ 2 files changed, 156 insertions(+), 19 deletions(-)
+
+diff --git a/res/values/clock_customizer_strings.xml b/res/values/clock_customizer_strings.xml
+index f5958f4..48902b1 100644
+--- a/res/values/clock_customizer_strings.xml
++++ b/res/values/clock_customizer_strings.xml
+@@ -25,4 +25,6 @@
+     <string name="clock_styles_title">Clock styles</string>
+     <string name="clock_styles_see_all">See all</string>
+     <string name="clock_styles_all_title">All clock styles</string>
++    <string name="clock_styles_all_summary">Tap a style to use it</string>
++    <string name="clock_style_number">Style <xliff:g id="number">%1$d</xliff:g></string>
+ </resources>
+diff --git a/src/com/android/settings/lockscreen/ClockCustomizerScreen.kt b/src/com/android/settings/lockscreen/ClockCustomizerScreen.kt
+index 0e5d768..42ed343 100644
+--- a/src/com/android/settings/lockscreen/ClockCustomizerScreen.kt
++++ b/src/com/android/settings/lockscreen/ClockCustomizerScreen.kt
+@@ -94,6 +94,9 @@ import androidx.compose.ui.viewinterop.AndroidView
+ import androidx.core.graphics.drawable.toBitmap
+ import com.android.settings.R
+ import kotlinx.coroutines.delay
++import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
++import androidx.compose.ui.input.nestedscroll.nestedScroll
++import androidx.compose.ui.layout.layout
+ import kotlinx.coroutines.launch
+ import androidx.compose.foundation.layout.systemBarsPadding
+ import java.text.SimpleDateFormat
+@@ -166,6 +169,8 @@ fun ClockCustomizerScreen() {
+         Column(
+             modifier = Modifier
+                 .fillMaxSize()
++                // Let scrolling collapse the Settings toolbar first, so the bottom is reachable.
++                .nestedScroll(rememberNestedScrollInteropConnection())
+                 .verticalScroll(rememberScrollState()),
+             horizontalAlignment = Alignment.CenterHorizontally
+         ) {
+@@ -231,6 +236,7 @@ fun ClockCustomizerScreen() {
+                             CustomizerTab.STYLE -> {
+                                 StyleTabContent(
+                                     state = state,
++                                    wallpaper = wallpaperBitmap,
+                                     onStateChange = { state = it }
+                                 )
+                             }
+@@ -267,7 +273,7 @@ fun ClockCustomizerScreen() {
+             }
+ 
+             // Room to scroll the controls clear of the gesture bar.
+-            Spacer(modifier = Modifier.height(48.dp))
++            Spacer(modifier = Modifier.height(120.dp))
+         }
+ 
+         colorPickerTarget?.let { target ->
+@@ -592,6 +598,7 @@ private fun applyClockColors(view: View, state: ClockCustomizerState) {
+ @Composable
+ private fun StyleTabContent(
+     state: ClockCustomizerState,
++    wallpaper: Bitmap?,
+     onStateChange: (ClockCustomizerState) -> Unit
+ ) {
+     val clockLayouts = ClockUtils.CLOCK_LAYOUTS
+@@ -670,6 +677,7 @@ private fun StyleTabContent(
+         if (showAllStyles) {
+             AllClockStylesDialog(
+                 selectedStyle = state.style,
++                wallpaper = wallpaper,
+                 onDismiss = { showAllStyles = false },
+                 onSelect = { index ->
+                     onStateChange(state.copy(style = index))
+@@ -700,10 +708,11 @@ private fun StyleTabContent(
+     }
+ }
+ 
+-/** Every clock style in a scrollable grid; tapping one selects it. */
++/** Every clock style as a mini lock screen in a two-column grid; tapping one selects it. */
+ @Composable
+ private fun AllClockStylesDialog(
+     selectedStyle: Int,
++    wallpaper: Bitmap?,
+     onDismiss: () -> Unit,
+     onSelect: (Int) -> Unit
+ ) {
+@@ -720,15 +729,22 @@ private fun AllClockStylesDialog(
+                 Row(
+                     modifier = Modifier
+                         .fillMaxWidth()
+-                        .padding(horizontal = 16.dp, vertical = 12.dp),
++                        .padding(start = 24.dp, end = 12.dp, top = 16.dp, bottom = 4.dp),
+                     horizontalArrangement = Arrangement.SpaceBetween,
+                     verticalAlignment = Alignment.CenterVertically
+                 ) {
+-                    Text(
+-                        text = stringResource(R.string.clock_styles_all_title),
+-                        style = MaterialTheme.typography.headlineSmall,
+-                        color = MaterialTheme.colorScheme.onSurface
+-                    )
++                    Column(modifier = Modifier.weight(1f)) {
++                        Text(
++                            text = stringResource(R.string.clock_styles_all_title),
++                            style = MaterialTheme.typography.headlineSmall,
++                            color = MaterialTheme.colorScheme.onSurface
++                        )
++                        Text(
++                            text = stringResource(R.string.clock_styles_all_summary),
++                            style = MaterialTheme.typography.bodyMedium,
++                            color = MaterialTheme.colorScheme.onSurfaceVariant
++                        )
++                    }
+                     androidx.compose.material3.TextButton(onClick = onDismiss) {
+                         Text(text = stringResource(android.R.string.cancel))
+                     }
+@@ -737,29 +753,148 @@ private fun AllClockStylesDialog(
+                     initialFirstVisibleItemIndex = selectedStyle.coerceIn(0, clockLayouts.size - 1)
+                 )
+                 androidx.compose.foundation.lazy.grid.LazyVerticalGrid(
+-                    columns = androidx.compose.foundation.lazy.grid.GridCells.Adaptive(100.dp),
++                    columns = androidx.compose.foundation.lazy.grid.GridCells.Fixed(2),
+                     state = gridState,
+-                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 48.dp),
+-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+-                    verticalArrangement = Arrangement.spacedBy(12.dp),
++                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 64.dp),
++                    horizontalArrangement = Arrangement.spacedBy(14.dp),
++                    verticalArrangement = Arrangement.spacedBy(18.dp),
+                     modifier = Modifier.fillMaxSize()
+                 ) {
+                     items(count = clockLayouts.size) { index ->
+-                        Box(contentAlignment = Alignment.Center) {
+-                            ClockFaceCard(
+-                                index = index,
+-                                layoutRes = clockLayouts[index],
+-                                isSelected = index == selectedStyle,
+-                                onClick = { onSelect(index) }
+-                            )
++                        ClockStyleTile(
++                            index = index,
++                            layoutRes = clockLayouts[index],
++                            wallpaper = wallpaper,
++                            isSelected = index == selectedStyle,
++                            onClick = { onSelect(index) }
++                        )
++                    }
++                }
++            }
++        }
++    }
++}
++
++/** One gallery tile: the wallpaper with the clock drawn at phone width, then scaled down. */
++@Composable
++private fun ClockStyleTile(
++    index: Int,
++    layoutRes: Int,
++    wallpaper: Bitmap?,
++    isSelected: Boolean,
++    onClick: () -> Unit
++) {
++    val shape = RoundedCornerShape(22.dp)
++    val borderColor by animateColorAsState(
++        targetValue = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
++        label = "tile_border"
++    )
++    Column(horizontalAlignment = Alignment.CenterHorizontally) {
++        Box(
++            modifier = Modifier
++                .fillMaxWidth()
++                .aspectRatio(0.82f)
++                .clip(shape)
++                .border(width = if (isSelected) 3.dp else 0.dp, color = borderColor, shape = shape)
++                .background(Color(0xFF111520))
++                .clickable(onClick = onClick)
++        ) {
++            if (wallpaper != null) {
++                Image(
++                    bitmap = wallpaper.asImageBitmap(),
++                    contentDescription = null,
++                    contentScale = ContentScale.Crop,
++                    alignment = Alignment.TopCenter,
++                    modifier = Modifier.fillMaxSize()
++                )
++                Box(modifier = Modifier.fillMaxSize().background(Color(0x33000000)))
++            }
++            if (index == 0) {
++                Column(
++                    modifier = Modifier.align(Alignment.Center),
++                    horizontalAlignment = Alignment.CenterHorizontally
++                ) {
++                    Icon(
++                        painter = painterResource(R.drawable.ic_settings_date_time),
++                        contentDescription = null,
++                        tint = Color.White,
++                        modifier = Modifier.size(36.dp)
++                    )
++                }
++            } else {
++                AndroidView(
++                    factory = { ctx ->
++                        FrameLayout(ctx).apply {
++                            clipChildren = false
++                            clipToPadding = false
++                            isClickable = false
++                            isFocusable = false
++                            descendantFocusability = ViewGroup.FOCUS_BLOCK_DESCENDANTS
++                            val pad = (24 * resources.displayMetrics.density).toInt()
++                            setPadding(pad, pad * 2, pad, 0)
++                            LayoutInflater.from(ctx).inflate(layoutRes, this, true)
++                            fun hideWeather(v: View) {
++                                if (v is ViewGroup) for (i in 0 until v.childCount) hideWeather(v.getChildAt(i))
++                                if (v is TextView) {
++                                    val idName = runCatching { v.resources.getResourceEntryName(v.id) }
++                                        .getOrNull() ?: return
++                                    if (idName.contains("weather", ignoreCase = true)) v.visibility = View.GONE
++                                }
++                            }
++                            if (childCount > 0) hideWeather(getChildAt(0))
++                        }
++                    },
++                    // Lay the clock out at a phone's width, then scale the result into the tile.
++                    modifier = Modifier.layout { measurable, constraints ->
++                        val virtualWidth = PHONE_WIDTH.roundToPx()
++                        val scale = constraints.maxWidth.toFloat() / virtualWidth
++                        val virtualHeight = (constraints.maxHeight / scale).toInt()
++                        val placeable = measurable.measure(
++                            androidx.compose.ui.unit.Constraints.fixed(virtualWidth, virtualHeight)
++                        )
++                        layout(constraints.maxWidth, constraints.maxHeight) {
++                            placeable.placeWithLayer(0, 0) {
++                                scaleX = scale
++                                scaleY = scale
++                                transformOrigin =
++                                    androidx.compose.ui.graphics.TransformOrigin(0f, 0f)
++                            }
+                         }
+                     }
++                )
++            }
++            if (isSelected) {
++                Box(
++                    modifier = Modifier
++                        .align(Alignment.TopEnd)
++                        .padding(8.dp)
++                        .size(24.dp)
++                        .clip(CircleShape)
++                        .background(MaterialTheme.colorScheme.primary),
++                    contentAlignment = Alignment.Center
++                ) {
++                    Icon(
++                        imageVector = Icons.Default.Check,
++                        contentDescription = null,
++                        tint = MaterialTheme.colorScheme.onPrimary,
++                        modifier = Modifier.size(15.dp)
++                    )
+                 }
+             }
+         }
++        Spacer(modifier = Modifier.height(6.dp))
++        Text(
++            text = if (index == 0) stringResource(R.string.default_value)
++                else stringResource(R.string.clock_style_number, index),
++            style = MaterialTheme.typography.labelLarge,
++            color = if (isSelected) MaterialTheme.colorScheme.primary
++                else MaterialTheme.colorScheme.onSurface
++        )
+     }
+ }
+ 
++private val PHONE_WIDTH = 411.dp
++
+ @Composable
+ private fun ClockFaceCard(
+     index: Int,

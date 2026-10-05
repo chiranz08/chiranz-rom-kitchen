@@ -1,0 +1,174 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: chiranz <chiranz08@users.noreply.github.com>
+Date: Mon, 5 Oct 2026 09:22:05 +0000
+Subject: [PATCH 12/16] Clock customizer: scrollable page with room at the
+ bottom; 'See all' gallery of every clock style
+
+---
+ res/values/clock_customizer_strings.xml       |   3 +
+ .../lockscreen/ClockCustomizerScreen.kt       | 101 +++++++++++++++++-
+ 2 files changed, 101 insertions(+), 3 deletions(-)
+
+diff --git a/res/values/clock_customizer_strings.xml b/res/values/clock_customizer_strings.xml
+index 893786c..f5958f4 100644
+--- a/res/values/clock_customizer_strings.xml
++++ b/res/values/clock_customizer_strings.xml
+@@ -22,4 +22,7 @@
+     <string name="lockscreen_custom_clock_aod_anim_title">Custom clock AOD animation</string>
+     <string name="lockscreen_custom_clock_style_title">Custom clock style</string>
+     <string name="lockscreen_custom_clock_wobble_on_charge_title">Wobble on charge</string>
++    <string name="clock_styles_title">Clock styles</string>
++    <string name="clock_styles_see_all">See all</string>
++    <string name="clock_styles_all_title">All clock styles</string>
+ </resources>
+diff --git a/src/com/android/settings/lockscreen/ClockCustomizerScreen.kt b/src/com/android/settings/lockscreen/ClockCustomizerScreen.kt
+index ce03f78..0e5d768 100644
+--- a/src/com/android/settings/lockscreen/ClockCustomizerScreen.kt
++++ b/src/com/android/settings/lockscreen/ClockCustomizerScreen.kt
+@@ -94,6 +94,8 @@ import androidx.compose.ui.viewinterop.AndroidView
+ import androidx.core.graphics.drawable.toBitmap
+ import com.android.settings.R
+ import kotlinx.coroutines.delay
++import kotlinx.coroutines.launch
++import androidx.compose.foundation.layout.systemBarsPadding
+ import java.text.SimpleDateFormat
+ import java.util.Date
+ import java.util.Locale
+@@ -130,6 +132,8 @@ private val RAINBOW_BRUSH = Brush.sweepGradient(
+     )
+ )
+ 
++private val PREVIEW_HEIGHT = 480.dp
++
+ @Composable
+ fun ClockCustomizerScreen() {
+     val context = LocalContext.current
+@@ -160,12 +164,14 @@ fun ClockCustomizerScreen() {
+             .navigationBarsPadding()
+     ) {
+         Column(
+-            modifier = Modifier.fillMaxSize(),
++            modifier = Modifier
++                .fillMaxSize()
++                .verticalScroll(rememberScrollState()),
+             horizontalAlignment = Alignment.CenterHorizontally
+         ) {
+             Box(
+                 modifier = Modifier
+-                    .weight(1f)
++                    .height(PREVIEW_HEIGHT)
+                     .fillMaxWidth()
+                     .padding(horizontal = 24.dp, vertical = 8.dp),
+                 contentAlignment = Alignment.Center
+@@ -260,7 +266,8 @@ fun ClockCustomizerScreen() {
+                 )
+             }
+ 
+-            Spacer(modifier = Modifier.height(8.dp))
++            // Room to scroll the controls clear of the gesture bar.
++            Spacer(modifier = Modifier.height(48.dp))
+         }
+ 
+         colorPickerTarget?.let { target ->
+@@ -644,6 +651,34 @@ private fun StyleTabContent(
+ 
+         Spacer(modifier = Modifier.height(10.dp))
+ 
++        var showAllStyles by remember { mutableStateOf(false) }
++        val scope = androidx.compose.runtime.rememberCoroutineScope()
++        Row(
++            modifier = Modifier.fillMaxWidth(),
++            horizontalArrangement = Arrangement.SpaceBetween,
++            verticalAlignment = Alignment.CenterVertically
++        ) {
++            Text(
++                text = stringResource(R.string.clock_styles_title),
++                style = MaterialTheme.typography.titleMedium,
++                color = MaterialTheme.colorScheme.onSurface
++            )
++            androidx.compose.material3.TextButton(onClick = { showAllStyles = true }) {
++                Text(text = stringResource(R.string.clock_styles_see_all))
++            }
++        }
++        if (showAllStyles) {
++            AllClockStylesDialog(
++                selectedStyle = state.style,
++                onDismiss = { showAllStyles = false },
++                onSelect = { index ->
++                    onStateChange(state.copy(style = index))
++                    showAllStyles = false
++                    scope.launch { listState.animateScrollToItem(index) }
++                }
++            )
++        }
++
+         LazyRow(
+             state = listState,
+             horizontalArrangement = Arrangement.spacedBy(10.dp),
+@@ -665,6 +700,66 @@ private fun StyleTabContent(
+     }
+ }
+ 
++/** Every clock style in a scrollable grid; tapping one selects it. */
++@Composable
++private fun AllClockStylesDialog(
++    selectedStyle: Int,
++    onDismiss: () -> Unit,
++    onSelect: (Int) -> Unit
++) {
++    val clockLayouts = ClockUtils.CLOCK_LAYOUTS
++    androidx.compose.ui.window.Dialog(
++        onDismissRequest = onDismiss,
++        properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
++    ) {
++        Surface(
++            modifier = Modifier.fillMaxSize(),
++            color = MaterialTheme.colorScheme.background
++        ) {
++            Column(modifier = Modifier.fillMaxSize().systemBarsPadding()) {
++                Row(
++                    modifier = Modifier
++                        .fillMaxWidth()
++                        .padding(horizontal = 16.dp, vertical = 12.dp),
++                    horizontalArrangement = Arrangement.SpaceBetween,
++                    verticalAlignment = Alignment.CenterVertically
++                ) {
++                    Text(
++                        text = stringResource(R.string.clock_styles_all_title),
++                        style = MaterialTheme.typography.headlineSmall,
++                        color = MaterialTheme.colorScheme.onSurface
++                    )
++                    androidx.compose.material3.TextButton(onClick = onDismiss) {
++                        Text(text = stringResource(android.R.string.cancel))
++                    }
++                }
++                val gridState = androidx.compose.foundation.lazy.grid.rememberLazyGridState(
++                    initialFirstVisibleItemIndex = selectedStyle.coerceIn(0, clockLayouts.size - 1)
++                )
++                androidx.compose.foundation.lazy.grid.LazyVerticalGrid(
++                    columns = androidx.compose.foundation.lazy.grid.GridCells.Adaptive(100.dp),
++                    state = gridState,
++                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 48.dp),
++                    horizontalArrangement = Arrangement.spacedBy(12.dp),
++                    verticalArrangement = Arrangement.spacedBy(12.dp),
++                    modifier = Modifier.fillMaxSize()
++                ) {
++                    items(count = clockLayouts.size) { index ->
++                        Box(contentAlignment = Alignment.Center) {
++                            ClockFaceCard(
++                                index = index,
++                                layoutRes = clockLayouts[index],
++                                isSelected = index == selectedStyle,
++                                onClick = { onSelect(index) }
++                            )
++                        }
++                    }
++                }
++            }
++        }
++    }
++}
++
+ @Composable
+ private fun ClockFaceCard(
+     index: Int,

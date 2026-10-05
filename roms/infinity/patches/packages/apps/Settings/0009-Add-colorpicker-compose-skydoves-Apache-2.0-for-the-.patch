@@ -1,0 +1,1785 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: chiranz <chiranz08@users.noreply.github.com>
+Date: Mon, 5 Oct 2026 06:57:43 +0000
+Subject: [PATCH 09/16] Add colorpicker-compose (skydoves, Apache-2.0) for the
+ clock customizer's colour picker
+
+---
+ .../colorpicker/compose/AlphaSlider.kt        | 100 +++++
+ .../skydoves/colorpicker/compose/AlphaTile.kt |  77 ++++
+ .../colorpicker/compose/AlphaTilePaint.kt     |  66 ++++
+ .../colorpicker/compose/BrightnessSlider.kt   |  80 ++++
+ .../colorpicker/compose/CanvasExtensions.kt   |  40 ++
+ .../colorpicker/compose/ColorEnvelope.kt      |  33 ++
+ .../colorpicker/compose/ColorExtensions.kt    |  57 +++
+ .../colorpicker/compose/ColorPicker.kt        | 134 +++++++
+ .../compose/ColorPickerController.kt          | 342 ++++++++++++++++++
+ .../colorpicker/compose/DefaultColors.kt      |  21 ++
+ .../compose/DrawScopeExtensions.kt            |  40 ++
+ .../colorpicker/compose/GeometryExtensions.kt |  55 +++
+ .../colorpicker/compose/HsvColorGradient.kt   |  59 +++
+ .../colorpicker/compose/HsvColorPicker.kt     |  92 +++++
+ .../compose/ImageBitmapExtensions.kt          |  42 +++
+ .../colorpicker/compose/ImageColorPicker.kt   | 161 +++++++++
+ .../compose/PaletteContentScale.kt            |  40 ++
+ .../skydoves/colorpicker/compose/README       |   2 +
+ .../skydoves/colorpicker/compose/Slider.kt    | 183 ++++++++++
+ 19 files changed, 1624 insertions(+)
+ create mode 100644 src/com/github/skydoves/colorpicker/compose/AlphaSlider.kt
+ create mode 100644 src/com/github/skydoves/colorpicker/compose/AlphaTile.kt
+ create mode 100644 src/com/github/skydoves/colorpicker/compose/AlphaTilePaint.kt
+ create mode 100644 src/com/github/skydoves/colorpicker/compose/BrightnessSlider.kt
+ create mode 100644 src/com/github/skydoves/colorpicker/compose/CanvasExtensions.kt
+ create mode 100644 src/com/github/skydoves/colorpicker/compose/ColorEnvelope.kt
+ create mode 100644 src/com/github/skydoves/colorpicker/compose/ColorExtensions.kt
+ create mode 100644 src/com/github/skydoves/colorpicker/compose/ColorPicker.kt
+ create mode 100644 src/com/github/skydoves/colorpicker/compose/ColorPickerController.kt
+ create mode 100644 src/com/github/skydoves/colorpicker/compose/DefaultColors.kt
+ create mode 100644 src/com/github/skydoves/colorpicker/compose/DrawScopeExtensions.kt
+ create mode 100644 src/com/github/skydoves/colorpicker/compose/GeometryExtensions.kt
+ create mode 100644 src/com/github/skydoves/colorpicker/compose/HsvColorGradient.kt
+ create mode 100644 src/com/github/skydoves/colorpicker/compose/HsvColorPicker.kt
+ create mode 100644 src/com/github/skydoves/colorpicker/compose/ImageBitmapExtensions.kt
+ create mode 100644 src/com/github/skydoves/colorpicker/compose/ImageColorPicker.kt
+ create mode 100644 src/com/github/skydoves/colorpicker/compose/PaletteContentScale.kt
+ create mode 100644 src/com/github/skydoves/colorpicker/compose/README
+ create mode 100644 src/com/github/skydoves/colorpicker/compose/Slider.kt
+
+diff --git a/src/com/github/skydoves/colorpicker/compose/AlphaSlider.kt b/src/com/github/skydoves/colorpicker/compose/AlphaSlider.kt
+new file mode 100644
+index 0000000..0479803
+--- /dev/null
++++ b/src/com/github/skydoves/colorpicker/compose/AlphaSlider.kt
+@@ -0,0 +1,100 @@
++/*
++ * Designed and developed by 2022 skydoves (Jaewoong Eum)
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++package com.github.skydoves.colorpicker.compose
++
++import androidx.compose.runtime.Composable
++import androidx.compose.runtime.SideEffect
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.graphics.Color
++import androidx.compose.ui.graphics.ImageBitmap
++import androidx.compose.ui.graphics.Paint
++import androidx.compose.ui.platform.LocalDensity
++import androidx.compose.ui.unit.Dp
++import androidx.compose.ui.unit.dp
++
++/**
++ * AlphaSlider allows you to adjust the alpha value of the selected color from color pickers.
++ *
++ * @param modifier [Modifier] to decorate the internal Canvas.
++ * @param controller Allows you to control and interacts with color pickers and all relevant subcomponents.
++ * @param borderRadius Radius of the border.
++ * @param borderSize [Dp] size of the border.
++ * @param borderColor [Color] of the border.
++ * @param wheelImageBitmap [ImageBitmap] to draw the wheel.
++ * @param wheelRadius Radius of the wheel.
++ * @param wheelColor [Color] of th wheel.
++ * @param wheelPaint [Paint] to draw the wheel.
++ * @param tileOddColor Color of the odd tiles.
++ * @param tileEvenColor Color of the even tiles.
++ * @param tileSize DP size of tiles.
++ * @param initialColor [Color] of the initial state. This property works for [HsvColorPicker] and
++ * it will be selected on rightmost of slider if you give null value.
++ */
++@Composable
++public fun AlphaSlider(
++  modifier: Modifier = Modifier,
++  controller: ColorPickerController,
++  borderRadius: Dp = 6.dp,
++  borderSize: Dp = 5.dp,
++  borderColor: Color = Color.LightGray,
++  wheelImageBitmap: ImageBitmap? = null,
++  wheelRadius: Dp = 12.dp,
++  wheelColor: Color = Color.White,
++  wheelAlpha: Float = 1.0f,
++  wheelPaint: Paint = Paint().apply {
++    color = wheelColor
++    alpha = wheelAlpha
++  },
++  tileOddColor: Color = defaultTileOddColor,
++  tileEvenColor: Color = defaultTileEvenColor,
++  tileSize: Dp = 12.dp,
++  initialColor: Color? = null,
++) {
++  val density = LocalDensity.current
++  val paint = alphaTilePaint(
++    with(density) { tileSize.toPx() },
++    tileOddColor,
++    tileEvenColor,
++  )
++
++  SideEffect {
++    controller.isAttachedAlphaSlider = true
++  }
++
++  Slider(
++    modifier = modifier,
++    controller = controller,
++    borderRadius = borderRadius,
++    borderSize = borderSize,
++    borderColor = borderColor,
++    wheelImageBitmap = wheelImageBitmap,
++    wheelRadius = wheelRadius,
++    wheelColor = wheelColor,
++    wheelAlpha = wheelAlpha,
++    wheelPaint = wheelPaint,
++    initialColor = initialColor,
++    drawBackground = {
++      drawRoundRect(it, borderRadius.value, paint)
++    },
++    getValue = { alpha.value },
++    setValue = ColorPickerController::setAlpha,
++    computeInitial = { it.alpha },
++    getGradientColors = {
++      val color = pureSelectedColor.value
++      listOf(color.copy(alpha = 0f), color.copy(alpha = 1f))
++    },
++  )
++}
+diff --git a/src/com/github/skydoves/colorpicker/compose/AlphaTile.kt b/src/com/github/skydoves/colorpicker/compose/AlphaTile.kt
+new file mode 100644
+index 0000000..2579400
+--- /dev/null
++++ b/src/com/github/skydoves/colorpicker/compose/AlphaTile.kt
+@@ -0,0 +1,77 @@
++/*
++ * Designed and developed by 2022 skydoves (Jaewoong Eum)
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++package com.github.skydoves.colorpicker.compose
++
++import androidx.compose.foundation.Canvas
++import androidx.compose.foundation.layout.fillMaxSize
++import androidx.compose.runtime.Composable
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.graphics.Color
++import androidx.compose.ui.graphics.ImageBitmap
++import androidx.compose.ui.graphics.Paint
++import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
++import androidx.compose.ui.layout.onSizeChanged
++import androidx.compose.ui.platform.LocalDensity
++import androidx.compose.ui.unit.Dp
++import androidx.compose.ui.unit.dp
++
++/**
++ * AlphaTile allows you to display ARGB colors including transparency with tiles.
++ *
++ * @param modifier [Modifier] to decorate the internal Canvas.
++ * @param controller Allows you to control and interacts with color pickers and all relevant subcomponents.
++ * @param selectedColor Color to be displayed over the tiles if the [controller] is not registered.
++ * @param tileOddColor Color of the odd tiles.
++ * @param tileEvenColor Color of the even tiles.
++ * @param tileSize DP size of tiles.
++ */
++@Composable
++public fun AlphaTile(
++  modifier: Modifier,
++  controller: ColorPickerController? = null,
++  selectedColor: Color = Color.Transparent,
++  tileOddColor: Color = defaultTileOddColor,
++  tileEvenColor: Color = defaultTileEvenColor,
++  tileSize: Dp = 12.dp,
++) {
++  val density = LocalDensity.current
++  var background: ImageBitmap? = null
++  val colorPaint = Paint().apply {
++    color = controller?.selectedColor?.value ?: selectedColor
++  }
++  val paint = alphaTilePaint(
++    tileSize = with(density) { tileSize.toPx() },
++    tileOddColor = tileOddColor,
++    tileEvenColor = tileEvenColor,
++  )
++
++  Canvas(
++    modifier
++      .fillMaxSize()
++      .onSizeChanged { size ->
++        if (size.width != 0 && size.height != 0) {
++          background = ImageBitmap.fromPaint(paint, size)
++        }
++      },
++  ) {
++    drawIntoCanvas { canvas ->
++      background?.let {
++        canvas.drawImage(it)
++        canvas.drawRect(it.size, colorPaint)
++      }
++    }
++  }
++}
+diff --git a/src/com/github/skydoves/colorpicker/compose/AlphaTilePaint.kt b/src/com/github/skydoves/colorpicker/compose/AlphaTilePaint.kt
+new file mode 100644
+index 0000000..8c2207f
+--- /dev/null
++++ b/src/com/github/skydoves/colorpicker/compose/AlphaTilePaint.kt
+@@ -0,0 +1,66 @@
++/*
++ * Designed and developed by 2022 skydoves (Jaewoong Eum)
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++package com.github.skydoves.colorpicker.compose
++
++import androidx.compose.ui.geometry.Rect
++import androidx.compose.ui.graphics.Canvas
++import androidx.compose.ui.graphics.Color
++import androidx.compose.ui.graphics.ImageBitmap
++import androidx.compose.ui.graphics.ImageBitmapConfig
++import androidx.compose.ui.graphics.ImageShader
++import androidx.compose.ui.graphics.Paint
++import androidx.compose.ui.graphics.PaintingStyle
++import androidx.compose.ui.graphics.TileMode
++
++/**
++ * AlphaTilePaint displays ARGB colors including transparency with tiles on a canvas.
++ *
++ * @param tileSize DP size of tiles.
++ * @param tileOddColor Color of the odd tiles.
++ * @param tileEvenColor Color of the even tiles.
++ */
++internal fun alphaTilePaint(
++  tileSize: Float,
++  tileOddColor: Color,
++  tileEvenColor: Color,
++): Paint {
++  val size = tileSize.toInt()
++  val imageBitmap = ImageBitmap(size * 2, size * 2, ImageBitmapConfig.Argb8888)
++  val canvas = Canvas(imageBitmap)
++  val rect = Rect(0f, 0f, tileSize, tileSize)
++
++  val paint = Paint().apply {
++    style = PaintingStyle.Fill
++    isAntiAlias = true
++  }
++
++  paint.color = tileOddColor
++  canvas.drawRect(rect, paint)
++  canvas.drawRect(rect.translate(tileSize, tileSize), paint)
++
++  paint.color = tileEvenColor
++  canvas.drawRect(rect.translate(0f, tileSize), paint)
++  canvas.drawRect(rect.translate(tileSize, 0f), paint)
++
++  return Paint().apply {
++    isAntiAlias = true
++    shader = ImageShader(
++      imageBitmap,
++      TileMode.Repeated,
++      TileMode.Repeated,
++    )
++  }
++}
+diff --git a/src/com/github/skydoves/colorpicker/compose/BrightnessSlider.kt b/src/com/github/skydoves/colorpicker/compose/BrightnessSlider.kt
+new file mode 100644
+index 0000000..80f92f9
+--- /dev/null
++++ b/src/com/github/skydoves/colorpicker/compose/BrightnessSlider.kt
+@@ -0,0 +1,80 @@
++/*
++ * Designed and developed by 2022 skydoves (Jaewoong Eum)
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++package com.github.skydoves.colorpicker.compose
++
++import androidx.compose.runtime.Composable
++import androidx.compose.runtime.SideEffect
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.graphics.Color
++import androidx.compose.ui.graphics.ImageBitmap
++import androidx.compose.ui.graphics.Paint
++import androidx.compose.ui.unit.Dp
++import androidx.compose.ui.unit.dp
++
++/**
++ * BrightnessSlider allows you to adjust the brightness value of the selected color from color pickers.
++ *
++ * @param modifier [Modifier] to decorate the internal Canvas.
++ * @param controller Allows you to control and interacts with color pickers and all relevant subcomponents.
++ * @param borderRadius Radius of the border.
++ * @param borderSize [Dp] size of the border.
++ * @param borderColor [Color] of the border.
++ * @param wheelImageBitmap [ImageBitmap] to draw the wheel.
++ * @param wheelRadius Radius of the wheel.
++ * @param wheelColor [Color] of th wheel.
++ * @param wheelPaint [Paint] to draw the wheel.
++ * @param initialColor [Color] of the initial state. This property works for [HsvColorPicker] and
++ * it will be selected on rightmost of slider if you give null value.
++ */
++@Composable
++public fun BrightnessSlider(
++  modifier: Modifier = Modifier,
++  controller: ColorPickerController,
++  borderRadius: Dp = 6.dp,
++  borderSize: Dp = 5.dp,
++  borderColor: Color = Color.LightGray,
++  wheelImageBitmap: ImageBitmap? = null,
++  wheelRadius: Dp = 12.dp,
++  wheelColor: Color = Color.White,
++  wheelAlpha: Float = 1.0f,
++  wheelPaint: Paint = Paint().apply {
++    color = wheelColor
++    alpha = wheelAlpha
++  },
++  initialColor: Color? = null,
++) {
++  SideEffect {
++    controller.isAttachedBrightnessSlider = true
++  }
++
++  Slider(
++    modifier = modifier,
++    controller = controller,
++    borderRadius = borderRadius,
++    borderSize = borderSize,
++    borderColor = borderColor,
++    wheelImageBitmap = wheelImageBitmap,
++    wheelRadius = wheelRadius,
++    wheelColor = wheelColor,
++    wheelAlpha = wheelAlpha,
++    wheelPaint = wheelPaint,
++    initialColor = initialColor,
++    getValue = { brightness.value },
++    setValue = ColorPickerController::setBrightness,
++    computeInitial = { maxOf(it.red, it.green, it.blue) },
++    getGradientColors = { listOf(Color.Black, pureSelectedColor.value) },
++  )
++}
+diff --git a/src/com/github/skydoves/colorpicker/compose/CanvasExtensions.kt b/src/com/github/skydoves/colorpicker/compose/CanvasExtensions.kt
+new file mode 100644
+index 0000000..3296dec
+--- /dev/null
++++ b/src/com/github/skydoves/colorpicker/compose/CanvasExtensions.kt
+@@ -0,0 +1,40 @@
++/*
++ * Designed and developed by 2022 skydoves (Jaewoong Eum)
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++package com.github.skydoves.colorpicker.compose
++
++import androidx.compose.ui.geometry.Offset
++import androidx.compose.ui.graphics.Canvas
++import androidx.compose.ui.graphics.ImageBitmap
++import androidx.compose.ui.graphics.Paint
++import androidx.compose.ui.unit.IntSize
++
++internal fun Canvas.drawImage(image: ImageBitmap, topLeft: Offset = Offset.Zero) {
++  drawImage(image, topLeft, emptyPaint)
++}
++
++internal fun Canvas.drawImageCenterAt(image: ImageBitmap, center: Offset = Offset.Zero) {
++  drawImage(image, center - image.size.center)
++}
++
++internal fun Canvas.drawRect(size: IntSize, paint: Paint) {
++  drawRect(0f, 0f, size.width.toFloat(), size.height.toFloat(), paint)
++}
++
++internal fun Canvas.drawRoundRect(size: IntSize, radius: Float, paint: Paint) {
++  drawRoundRect(0f, 0f, size.width.toFloat(), size.height.toFloat(), radius, radius, paint)
++}
++
++internal val emptyPaint = Paint()
+diff --git a/src/com/github/skydoves/colorpicker/compose/ColorEnvelope.kt b/src/com/github/skydoves/colorpicker/compose/ColorEnvelope.kt
+new file mode 100644
+index 0000000..1f72f66
+--- /dev/null
++++ b/src/com/github/skydoves/colorpicker/compose/ColorEnvelope.kt
+@@ -0,0 +1,33 @@
++/*
++ * Designed and developed by 2022 skydoves (Jaewoong Eum)
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++package com.github.skydoves.colorpicker.compose
++
++import androidx.compose.runtime.Immutable
++import androidx.compose.ui.graphics.Color
++
++/**
++ * Data transfer object that includes updated color factors.
++ *
++ * @param color ARGB color value.
++ * @param hexCode Color hex code, which represents [color] value.
++ * @param fromUser Represents this event is triggered by user or not.
++ */
++@Immutable
++public data class ColorEnvelope(
++  val color: Color,
++  val hexCode: String,
++  val fromUser: Boolean,
++)
+diff --git a/src/com/github/skydoves/colorpicker/compose/ColorExtensions.kt b/src/com/github/skydoves/colorpicker/compose/ColorExtensions.kt
+new file mode 100644
+index 0000000..e61a80e
+--- /dev/null
++++ b/src/com/github/skydoves/colorpicker/compose/ColorExtensions.kt
+@@ -0,0 +1,57 @@
++/*
++ * Designed and developed by 2022 skydoves (Jaewoong Eum)
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++package com.github.skydoves.colorpicker.compose
++
++import androidx.compose.ui.geometry.Offset
++import androidx.compose.ui.graphics.Color
++
++internal val Color.hexCode: String
++  inline get() {
++    val a: Int = (alpha * 255).toInt()
++    val r: Int = (red * 255).toInt()
++    val g: Int = (green * 255).toInt()
++    val b: Int = (blue * 255).toInt()
++    return a.hex + r.hex + g.hex + b.hex
++  }
++
++private val Int.hex get() = this.toString(16).padStart(2, '0')
++
++internal fun Color.toHSV(): Triple<Float, Float, Float> {
++  val cmax = maxOf(red, green, blue)
++  val cmin = minOf(red, green, blue)
++  val diff = cmax - cmin
++
++  val h = if (diff == 0f) {
++    0.0f
++  } else if (cmax == red) {
++    (60 * ((green - blue) / diff) + 360f) % 360f
++  } else if (cmax == green) {
++    (60 * ((blue - red) / diff) + 120f) % 360f
++  } else {
++    (60 * ((red - green) / diff) + 240f) % 360f // if (cmax == blue)
++  }
++  val s = if (cmax == 0f) 0f else diff / cmax
++  val v = cmax
++
++  return Triple(h, s, v)
++}
++
++/** Converts an HS(V) color to a coordinate on the hue/saturation circle. */
++internal fun hsvToCoord(h: Float, s: Float, center: Offset) =
++  Offset.fromAngle(hueToAngle(h), s * center.minCoordinate) + center
++
++internal fun angleToHue(angle: Float) = (-angle.toDegrees() + 360f) % 360f
++internal fun hueToAngle(hue: Float) = -hue.toRadians()
+diff --git a/src/com/github/skydoves/colorpicker/compose/ColorPicker.kt b/src/com/github/skydoves/colorpicker/compose/ColorPicker.kt
+new file mode 100644
+index 0000000..59fd0f4
+--- /dev/null
++++ b/src/com/github/skydoves/colorpicker/compose/ColorPicker.kt
+@@ -0,0 +1,134 @@
++/*
++ * Designed and developed by 2022 skydoves (Jaewoong Eum)
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++package com.github.skydoves.colorpicker.compose
++
++import androidx.compose.foundation.Canvas
++import androidx.compose.foundation.gestures.detectDragGestures
++import androidx.compose.foundation.gestures.detectTapGestures
++import androidx.compose.runtime.Composable
++import androidx.compose.runtime.DisposableEffect
++import androidx.compose.runtime.getValue
++import androidx.compose.runtime.mutableStateOf
++import androidx.compose.runtime.remember
++import androidx.compose.runtime.setValue
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.geometry.Offset
++import androidx.compose.ui.geometry.Size
++import androidx.compose.ui.graphics.Canvas
++import androidx.compose.ui.graphics.ImageBitmap
++import androidx.compose.ui.graphics.Paint
++import androidx.compose.ui.graphics.drawscope.DrawScope
++import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
++import androidx.compose.ui.input.pointer.pointerInput
++import androidx.compose.ui.layout.onSizeChanged
++import androidx.compose.ui.unit.IntSize
++import androidx.compose.ui.unit.toSize
++import kotlinx.coroutines.Dispatchers
++import kotlinx.coroutines.launch
++
++/**
++ * ColorPicker allows you to get colors from a palette by tapping on the desired color.
++ * See HsvColorPicker and ImageColorPicker for more concrete functions.
++ *
++ * @param modifier [Modifier] to decorate the internal Canvas.
++ * @param controller Allows you to control and interacts with color pickers and all relevant subcomponents.
++ * @param wheelImageBitmap [ImageBitmap] to draw the wheel.
++ * @param drawOnPosSelected to draw anything on the canvas when [ColorPickerController.selectedPoint] changes
++ * @param drawDefaultWheelIndicator should the indicator be drawn on the canvas. Defaults to false if either [wheelImageBitmap] or [drawOnPosSelected] are not null.
++ * @param onColorChanged Color changed listener.
++ */
++@Composable
++internal fun ColorPicker(
++  modifier: Modifier,
++  controller: ColorPickerController,
++  wheelImageBitmap: ImageBitmap? = null,
++  drawOnPosSelected: (DrawScope.() -> Unit)? = null,
++  drawDefaultWheelIndicator: Boolean = wheelImageBitmap == null && drawOnPosSelected == null,
++  onColorChanged: (colorEnvelope: ColorEnvelope) -> Unit = {},
++  sizeChanged: (IntSize) -> Unit = { _ -> },
++  setup: ColorPickerController.() -> Unit,
++  draw: Canvas.(size: Size) -> Unit,
++) {
++  var initialized by remember { mutableStateOf(false) }
++
++  val debounceDuration = controller.debounceDuration
++  DisposableEffect(key1 = controller, key2 = debounceDuration) {
++    controller.coroutineScope.launch(Dispatchers.Main) {
++      controller.getColorFlow(debounceDuration ?: 0).collect {
++        onColorChanged(it)
++      }
++    }
++    onDispose { controller.releaseBitmap() }
++  }
++
++  Canvas(
++    modifier = modifier
++      .onSizeChanged { size ->
++        if (size.width != 0 && size.height != 0) {
++          sizeChanged(size)
++          controller.canvasSize = size.toSize()
++          if (!initialized) {
++            controller.wheelBitmap = wheelImageBitmap
++            controller.setup()
++            initialized = true
++          }
++        }
++      }
++      .pointerInput(Unit) {
++        detectTapGestures { offset ->
++          controller.selectByCoordinate(offset, true)
++        }
++      }
++      .pointerInput(Unit) {
++        detectDragGestures { change, _ ->
++          controller.selectByCoordinate(change.position, true)
++        }
++      },
++  ) {
++    drawIntoCanvas { canvas ->
++      // draw bitmap on the canvas.
++      canvas.save()
++      canvas.clipRect(0f, 0f, size.width, size.height)
++      canvas.draw(size)
++      canvas.restore()
++
++      // draw wheel bitmap on the canvas.
++      canvas.drawWheel(
++        point = controller.selectedPoint.value,
++        wheelBitmap = controller.wheelBitmap,
++        drawDefaultWheelIndicator = drawDefaultWheelIndicator,
++        wheelRadiusPx = controller.wheelRadius.toPx(),
++        wheelPaint = controller.wheelPaint,
++      )
++
++      drawOnPosSelected?.let { it() }
++    }
++    controller.reviseTick.intValue
++  }
++}
++
++private fun Canvas.drawWheel(
++  point: Offset,
++  wheelBitmap: ImageBitmap?,
++  drawDefaultWheelIndicator: Boolean,
++  wheelRadiusPx: Float,
++  wheelPaint: Paint,
++) {
++  wheelBitmap?.let { drawImageCenterAt(it, point) }
++  if (drawDefaultWheelIndicator) {
++    drawCircle(point, wheelRadiusPx, wheelPaint)
++  }
++}
+diff --git a/src/com/github/skydoves/colorpicker/compose/ColorPickerController.kt b/src/com/github/skydoves/colorpicker/compose/ColorPickerController.kt
+new file mode 100644
+index 0000000..29bb18e
+--- /dev/null
++++ b/src/com/github/skydoves/colorpicker/compose/ColorPickerController.kt
+@@ -0,0 +1,342 @@
++/*
++ * Designed and developed by 2022 skydoves (Jaewoong Eum)
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++@file:Suppress("RedundantVisibilityModifier", "unused")
++
++package com.github.skydoves.colorpicker.compose
++
++import androidx.compose.runtime.Composable
++import androidx.compose.runtime.MutableState
++import androidx.compose.runtime.Stable
++import androidx.compose.runtime.State
++import androidx.compose.runtime.mutableFloatStateOf
++import androidx.compose.runtime.mutableIntStateOf
++import androidx.compose.runtime.mutableStateOf
++import androidx.compose.runtime.remember
++import androidx.compose.runtime.rememberCoroutineScope
++import androidx.compose.ui.geometry.Offset
++import androidx.compose.ui.geometry.Size
++import androidx.compose.ui.geometry.center
++import androidx.compose.ui.graphics.Color
++import androidx.compose.ui.graphics.ImageBitmap
++import androidx.compose.ui.graphics.Paint
++import androidx.compose.ui.unit.Dp
++import androidx.compose.ui.unit.dp
++import kotlinx.coroutines.CoroutineScope
++import kotlinx.coroutines.DelicateCoroutinesApi
++import kotlinx.coroutines.FlowPreview
++import kotlinx.coroutines.GlobalScope
++import kotlinx.coroutines.flow.Flow
++import kotlinx.coroutines.flow.MutableStateFlow
++import kotlinx.coroutines.flow.StateFlow
++import kotlinx.coroutines.flow.debounce
++import kotlinx.coroutines.flow.filterNotNull
++
++/** Creates and remembers a [ColorPickerController] on the current composer. */
++@Composable
++public fun rememberColorPickerController(): ColorPickerController {
++  val scope = rememberCoroutineScope()
++  return remember { ColorPickerController(scope) }
++}
++
++/**
++ * [ColorPickerController] allows you to control and interacts with the [ImageColorPicker], [HsvColorPicker],
++ * and all relevant subcomponents. You can create and remember [ColorPickerController]
++ * with the [rememberColorPickerController] extension.
++ */
++@Stable
++public class ColorPickerController
++@OptIn(DelicateCoroutinesApi::class)
++constructor(
++  internal val coroutineScope: CoroutineScope = GlobalScope,
++) {
++  internal var canvasSize: Size = Size.Zero
++    set(value) {
++      if (value == field) {
++        return
++      }
++      val cur = _selectedPoint.value
++      _selectedPoint.value = Offset(
++        // TODO: check this for aspect ratio preservation
++        cur.x * value.width / field.width,
++        cur.y * value.height / field.height,
++      )
++      field = value
++    }
++
++  private val _selectedPoint: MutableState<Offset> = mutableStateOf(Offset.Zero)
++
++  /** State of [Offset], which represents the currently selected coordinate. */
++  public val selectedPoint: State<Offset> = _selectedPoint
++
++  private val _selectedColor: MutableState<Color> = mutableStateOf(Color.Transparent)
++
++  /** State of [Color], which represents the currently selected color value with alpha and brightness. */
++  public val selectedColor: State<Color> = _selectedColor
++
++  /** State of [Color], which represents the currently selected color value without alpha and brightness. */
++  internal var pureSelectedColor: MutableState<Color> = mutableStateOf(Color.Transparent)
++
++  /** Alpha value to be applied with the selected color. */
++  internal var alpha: MutableState<Float> = mutableFloatStateOf(1.0f)
++
++  /** Brightness value to be applied with the selected color. */
++  internal var brightness: MutableState<Float> = mutableFloatStateOf(1.0f)
++
++  /** An [ImageBitmap] to be drawn on the canvas as a palette. */
++  private var _paletteBitmap: MutableStateFlow<ImageBitmap?> = MutableStateFlow(null)
++  public val paletteBitmap: StateFlow<ImageBitmap?> = _paletteBitmap
++
++  /** An [ImageBitmap] to be drawn on the canvas as a wheel. */
++  public var wheelBitmap: ImageBitmap? = null
++
++  internal val _debounceDuration: MutableState<Long?> = mutableStateOf(null)
++
++  /** A debounce duration for observing color changes. */
++  public var debounceDuration: Long?
++    get() = _debounceDuration.value
++    set(value) {
++      _debounceDuration.value = value
++    }
++
++  /** Radius to draw default wheel. */
++  public var wheelRadius: Dp = 12.dp
++    set(value) {
++      field = value
++      reviseTick.intValue++
++    }
++
++  /** Paint to draw default wheel. */
++  public var wheelPaint: Paint = Paint().apply { color = Color.White }
++    set(value) {
++      field = value
++      reviseTick.intValue++
++    }
++
++  /** Color of the default wheel. */
++  public var wheelColor: Color
++    get() = wheelPaint.color
++    set(value) {
++      wheelPaint.color = value
++      reviseTick.intValue++
++    }
++
++  /** Color of the default wheel. */
++  public var wheelAlpha: Float
++    get() = wheelPaint.alpha
++    set(value) {
++      wheelPaint.alpha = value
++      reviseTick.intValue++
++    }
++
++  private val _enabled: MutableState<Boolean> = mutableStateOf(true)
++
++  /** Enable or not color selection. */
++  public var enabled: Boolean
++    get() = _enabled.value
++    set(value) {
++      _enabled.value = value
++    }
++
++  /** Indicates if the alpha slider has been attached. */
++  internal var isAttachedAlphaSlider: Boolean = false
++
++  /** Indicates if the brightness slider has been attached. */
++  internal var isAttachedBrightnessSlider: Boolean = false
++
++  internal var reviseTick = mutableIntStateOf(0)
++
++  private var _colorFlow = MutableStateFlow<ColorEnvelope?>(null)
++
++  @OptIn(FlowPreview::class)
++  public fun getColorFlow(debounceDuration: Long = 0): Flow<ColorEnvelope> =
++    _colorFlow.filterNotNull().debounce(this.debounceDuration ?: debounceDuration)
++
++  // Function that takes a coordinate and obtains a color
++  // Also returns an adjusted coordinate if appropriate
++  private var coordToColor: ((Offset) -> Pair<Color, Offset>)? = null
++
++  /**
++   * Setup the controller for use by a picker. The initial position is the
++   * initial value selected by the picker. The coordinateToColor function
++   * is used to get the color at a given coordinate. The function should
++   * return the color at the coordinate and the adjusted coordinate if
++   * the coordinate was out of bounds.
++   */
++  internal fun setup(
++    initialPosition: Offset = canvasSize.center,
++    coordinateToColor: (Offset) -> Pair<Color, Offset>,
++  ) {
++    this.coordToColor = coordinateToColor
++    selectByCoordinate(initialPosition, fromUser = false)
++    reviseTick.intValue++
++  }
++
++  /**
++   * Select a specific point by coordinates and update a selected color.
++   *
++   * @param x x-coordinate to extract a pixel color.
++   * @param y y-coordinate to extract a pixel color.
++   * @param fromUser Represents this event is triggered by user or not.
++   */
++  public fun selectByCoordinate(x: Float, y: Float, fromUser: Boolean) {
++    selectByCoordinate(Offset(x, y), fromUser)
++  }
++
++  /**
++   * Select a specific point by coordinates and update a selected color.
++   *
++   * @param point coordinate to extract a pixel color.
++   * @param fromUser Represents this event is triggered by user or not.
++   */
++  public fun selectByCoordinate(point: Offset, fromUser: Boolean) {
++    if (selectByCoordinate(point)) {
++      // notify color changes to the listeners.
++      notifyColorChanged(fromUser)
++    }
++  }
++
++  /**
++   * Select center point of the palette.
++   *
++   * @param fromUser Represents this event is triggered by user or not.
++   */
++  public fun selectCenter(fromUser: Boolean) {
++    selectByCoordinate(canvasSize.center, fromUser)
++  }
++
++  /**
++   * Select a specific color and update with the selected color.
++   *
++   * @param color Color to be selected.
++   * @param fromUser Represents this event is triggered by user or not.
++   */
++  public fun selectByColor(color: Color, fromUser: Boolean) {
++    val (h, s, v) = color.toHSV()
++    selectByHsv(h, s, v, color.alpha, fromUser)
++  }
++
++  /**
++   * Select a specific color and update with the selected color.
++   *
++   * @param hsv A float array that represents hsv color code.
++   * @param alpha An alpha value that will be composed with the [hsv] color code.
++   * @param fromUser Represents this event is triggered by user or not.
++   */
++  public fun selectByHsv(hsv: FloatArray, alpha: Float, fromUser: Boolean) {
++    selectByHsv(hsv[0], hsv[1], hsv[2], alpha, fromUser)
++  }
++
++  /**
++   * Select a specific color and update with the selected color.
++   *
++   * @param h The float value for the hue.
++   * @param s The float value for the saturation.
++   * @param v The float value for the value.
++   * @param alpha The float value for the alpha.
++   * @param fromUser Represents this event is triggered by user or not.
++   */
++  public fun selectByHsv(h: Float, s: Float, v: Float, alpha: Float, fromUser: Boolean) {
++    var changed = selectByCoordinate(hsvToCoord(h, s, canvasSize.center))
++    changed = setAlpha(alpha) || changed
++    changed = setBrightness(v) || changed
++    if (changed) {
++      notifyColorChanged(fromUser)
++    }
++  }
++
++  /** Combine the alpha value to the selected pure color. */
++  public fun setAlpha(alpha: Float, fromUser: Boolean) {
++    if (setAlpha(alpha)) {
++      notifyColorChanged(fromUser)
++    }
++  }
++
++  /** Combine the brightness value to the selected pure color. */
++  public fun setBrightness(brightness: Float, fromUser: Boolean) {
++    if (setBrightness(brightness)) {
++      notifyColorChanged(fromUser)
++    }
++  }
++
++  /** Notify color changes to the color picker and other subcomponents. */
++  private fun notifyColorChanged(fromUser: Boolean) {
++    val color = _selectedColor.value
++    _colorFlow.value = ColorEnvelope(color, color.hexCode, fromUser)
++  }
++
++  /**
++   * Select a specific point by coordinates and update a selected color.
++   * This version does not notify of the change but returns if there was a change.
++   *
++   * @param point coordinate to extract a pixel color.
++   * @return true if the color was changed.
++   */
++  private fun selectByCoordinate(point: Offset): Boolean {
++    val coordToColor = coordToColor
++    if (!enabled || coordToColor == null) return false
++    val (color, newPoint) = coordToColor(point)
++    _selectedPoint.value = newPoint
++    if (pureSelectedColor.value == color) return false
++    _selectedColor.value = applyHSVFactors(color)
++    pureSelectedColor.value = color
++    return true
++  }
++
++  /** Combine the alpha value to the selected pure color. */
++  private fun setAlpha(alpha: Float): Boolean {
++    if (!enabled || this.alpha.value == alpha) {
++      return false
++    }
++    this.alpha.value = alpha
++    _selectedColor.value = selectedColor.value.copy(alpha = alpha)
++    return true
++  }
++
++  /** Combine the brightness value to the selected pure color. */
++  private fun setBrightness(brightness: Float): Boolean {
++    if (!enabled || this.brightness.value == brightness) {
++      return false
++    }
++    this.brightness.value = brightness
++    val (h, s, _) = pureSelectedColor.value.toHSV()
++    _selectedColor.value = Color.hsv(h, s, brightness, alpha.value)
++    return true
++  }
++
++  /** Return a [Color] that is applied with HSV color factors to the [color]. */
++  private fun applyHSVFactors(color: Color): Color {
++    val (h, s, v) = color.toHSV()
++    val actualV = if (isAttachedBrightnessSlider) brightness.value else v
++    return Color.hsv(h, s, actualV, if (isAttachedAlphaSlider) alpha.value else 1f)
++  }
++
++  /** Set an [ImageBitmap] to draw on the canvas as a palette. */
++  public fun setPaletteImageBitmap(imageBitmap: ImageBitmap) {
++    val targetSize = imageBitmap.takeIf { it.width != 0 && it.height != 0 }
++      ?: throw RuntimeException(
++        "Can't set an ImageBitmap before initializing the canvas",
++      )
++    canvasSize = Size(targetSize.width.toFloat(), targetSize.height.toFloat())
++    _paletteBitmap.value = imageBitmap
++    selectCenter(fromUser = false)
++    reviseTick.intValue++
++  }
++
++  internal fun releaseBitmap() {
++    wheelBitmap = null
++    _paletteBitmap.value = null
++  }
++}
+diff --git a/src/com/github/skydoves/colorpicker/compose/DefaultColors.kt b/src/com/github/skydoves/colorpicker/compose/DefaultColors.kt
+new file mode 100644
+index 0000000..2633d11
+--- /dev/null
++++ b/src/com/github/skydoves/colorpicker/compose/DefaultColors.kt
+@@ -0,0 +1,21 @@
++/*
++ * Designed and developed by 2022 skydoves (Jaewoong Eum)
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++package com.github.skydoves.colorpicker.compose
++
++import androidx.compose.ui.graphics.Color
++
++internal val defaultTileOddColor: Color = Color(0xFFFFFFFF)
++internal val defaultTileEvenColor: Color = Color(0xFFCBCBCB)
+diff --git a/src/com/github/skydoves/colorpicker/compose/DrawScopeExtensions.kt b/src/com/github/skydoves/colorpicker/compose/DrawScopeExtensions.kt
+new file mode 100644
+index 0000000..963b46f
+--- /dev/null
++++ b/src/com/github/skydoves/colorpicker/compose/DrawScopeExtensions.kt
+@@ -0,0 +1,40 @@
++/*
++ * Designed and developed by 2022 skydoves (Jaewoong Eum)
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++package com.github.skydoves.colorpicker.compose
++
++import androidx.compose.ui.geometry.Offset
++import androidx.compose.ui.graphics.Color
++import androidx.compose.ui.graphics.drawscope.DrawScope
++import androidx.compose.ui.graphics.drawscope.Stroke
++
++private const val SELECTOR_RADIUS: Float = 50f
++private const val BORDER_WIDTH: Float = 10f
++
++public fun DrawScope.drawColorIndicator(pos: Offset, color: Color) {
++  drawCircle(color, SELECTOR_RADIUS, Offset(pos.x, pos.y))
++  drawCircle(
++    Color.White,
++    SELECTOR_RADIUS - (BORDER_WIDTH / 2),
++    Offset(pos.x, pos.y),
++    style = Stroke(width = BORDER_WIDTH),
++  )
++  drawCircle(
++    Color.LightGray,
++    SELECTOR_RADIUS,
++    Offset(pos.x, pos.y),
++    style = Stroke(width = 1f),
++  )
++}
+diff --git a/src/com/github/skydoves/colorpicker/compose/GeometryExtensions.kt b/src/com/github/skydoves/colorpicker/compose/GeometryExtensions.kt
+new file mode 100644
+index 0000000..06cff36
+--- /dev/null
++++ b/src/com/github/skydoves/colorpicker/compose/GeometryExtensions.kt
+@@ -0,0 +1,55 @@
++/*
++ * Designed and developed by 2022 skydoves (Jaewoong Eum)
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++package com.github.skydoves.colorpicker.compose
++
++import androidx.compose.ui.geometry.Offset
++import androidx.compose.ui.unit.IntOffset
++import androidx.compose.ui.unit.IntSize
++import kotlin.math.PI
++import kotlin.math.atan2
++import kotlin.math.cos
++import kotlin.math.min
++import kotlin.math.roundToInt
++import kotlin.math.sin
++import kotlin.math.sqrt
++
++internal const val PI_F = PI.toFloat()
++internal const val TO_DEGREES = 180f / PI_F
++internal const val TO_RADIANS = PI_F / 180f
++internal fun Float.toRadians() = this * TO_RADIANS
++internal fun Float.toDegrees() = this * TO_DEGREES
++
++// These exist for Size but not IntSize
++internal val IntSize.center get() = Offset(width * 0.5f, height * 0.5f)
++internal operator fun IntSize.times(scale: Float) =
++  IntSize((width * scale).roundToInt(), (height * scale).roundToInt())
++
++// New extensions
++internal val IntSize.radius get() = min(width, height) * 0.5f
++
++internal val Offset.minCoordinate get() = min(x, y) // exists for Size but not Offset
++internal fun Offset.distanceTo(other: Offset) = sqrt(
++  (x - other.x) * (x - other.x) + (y - other.y) * (y - other.y),
++)
++
++internal fun Offset.midpoint(other: Offset) = (this + other) * 0.5f
++internal fun Offset.length() = sqrt(x * x + y * y)
++internal fun Offset.angle() = atan2(y, x)
++
++internal fun Offset.roundToInt() = IntOffset(x.roundToInt(), y.roundToInt())
++
++internal fun Offset.Companion.fromAngle(radians: Float, magnitude: Float) =
++  Offset(cos(radians) * magnitude, sin(radians) * magnitude)
+diff --git a/src/com/github/skydoves/colorpicker/compose/HsvColorGradient.kt b/src/com/github/skydoves/colorpicker/compose/HsvColorGradient.kt
+new file mode 100644
+index 0000000..6627fae
+--- /dev/null
++++ b/src/com/github/skydoves/colorpicker/compose/HsvColorGradient.kt
+@@ -0,0 +1,59 @@
++/*
++ * Designed and developed by 2022 skydoves (Jaewoong Eum)
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++package com.github.skydoves.colorpicker.compose
++
++import androidx.compose.ui.geometry.Size
++import androidx.compose.ui.geometry.center
++import androidx.compose.ui.graphics.Brush
++import androidx.compose.ui.graphics.Canvas
++import androidx.compose.ui.graphics.Color
++import androidx.compose.ui.graphics.Paint
++import androidx.compose.ui.graphics.RadialGradient
++import androidx.compose.ui.graphics.TileMode
++
++/**
++ * Draws hsv color gradient with hue and saturation on a canvas.
++ */
++internal fun Canvas.drawHsvColorGradient(size: Size) {
++  val center = size.center
++  val radius = size.minDimension * 0.5f
++  hsvSweepGradient.applyTo(size, huePaint, 1f)
++  saturationGradient.applyTo(size, saturationPaint, 1f)
++  drawCircle(center, radius, huePaint)
++  drawCircle(center, radius, saturationPaint)
++}
++
++private val huePaint: Paint = Paint().apply { isAntiAlias = true }
++private val saturationPaint: Paint = Paint().apply { isAntiAlias = true }
++
++private val hsvSweepGradient = Brush.sweepGradient(
++  0.000f to Color.Red,
++  0.166f to Color.Magenta,
++  0.333f to Color.Blue,
++  0.499f to Color.Cyan,
++  0.666f to Color.Green,
++  0.833f to Color.Yellow,
++  0.999f to Color.Red,
++  // center = center,
++)
++
++private val saturationGradient = Brush.radialGradient(
++  0f to Color(0xFFFFFFFF),
++  1f to Color(0x00FFFFFF),
++  // center = center,
++  // radius = radius,
++  tileMode = TileMode.Clamp,
++) as RadialGradient
+diff --git a/src/com/github/skydoves/colorpicker/compose/HsvColorPicker.kt b/src/com/github/skydoves/colorpicker/compose/HsvColorPicker.kt
+new file mode 100644
+index 0000000..583b3c3
+--- /dev/null
++++ b/src/com/github/skydoves/colorpicker/compose/HsvColorPicker.kt
+@@ -0,0 +1,92 @@
++/*
++ * Designed and developed by 2022 skydoves (Jaewoong Eum)
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++package com.github.skydoves.colorpicker.compose
++
++import androidx.compose.foundation.layout.fillMaxSize
++import androidx.compose.runtime.Composable
++import androidx.compose.runtime.getValue
++import androidx.compose.runtime.mutableStateOf
++import androidx.compose.runtime.remember
++import androidx.compose.runtime.setValue
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.geometry.Offset
++import androidx.compose.ui.graphics.Color
++import androidx.compose.ui.graphics.ImageBitmap
++import androidx.compose.ui.graphics.drawscope.DrawScope
++import androidx.compose.ui.unit.IntSize
++import kotlin.math.min
++
++/**
++ * HsvColorPicker allows you to get colors from HSV color palette by tapping on the desired color.
++ *
++ * @param modifier [Modifier] to decorate the internal Canvas.
++ * @param controller Allows you to control and interacts with color pickers and all relevant subcomponents.
++ * @param wheelImageBitmap [ImageBitmap] to draw the wheel.
++ * @param drawOnPosSelected to draw anything on the canvas when [ColorPickerController.selectedPoint] changes
++ * @param drawDefaultWheelIndicator should the indicator be drawn on the canvas. Defaults to false if either [wheelImageBitmap] or [drawOnPosSelected] are not null.
++ * @param onColorChanged Color changed listener.
++ * @param initialColor [Color] of the initial state. This property works for [HsvColorPicker] and
++ * it will be selected on center if you give null value.
++ */
++@Composable
++public fun HsvColorPicker(
++  modifier: Modifier,
++  controller: ColorPickerController,
++  wheelImageBitmap: ImageBitmap? = null,
++  drawOnPosSelected: (DrawScope.() -> Unit)? = null,
++  drawDefaultWheelIndicator: Boolean = wheelImageBitmap == null && drawOnPosSelected == null,
++  onColorChanged: (colorEnvelope: ColorEnvelope) -> Unit = {},
++  initialColor: Color? = null,
++) {
++  var size by remember { mutableStateOf(IntSize.Zero) }
++  var radius by remember { mutableStateOf(size.radius) }
++  var center by remember { mutableStateOf(size.center) }
++
++  ColorPicker(
++    modifier = modifier.fillMaxSize(),
++    controller = controller,
++    wheelImageBitmap = wheelImageBitmap,
++    drawOnPosSelected = drawOnPosSelected,
++    drawDefaultWheelIndicator = drawDefaultWheelIndicator,
++    onColorChanged = onColorChanged,
++    sizeChanged = {
++      size = it
++      radius = size.radius
++      center = size.center
++    },
++    setup = {
++      val initialPosition = initialColor?.let {
++        val (h, s, _) = it.toHSV()
++        hsvToCoord(h, s, center)
++      } ?: center
++      controller.setup(initialPosition) { point ->
++        val vector = point - center
++        val angle = vector.angle()
++        val hue = angleToHue(angle) // hue: 0 to 360
++        val sat = min(vector.length() / radius, 1f) // saturation: 0 to 1
++        // adjust point in case saturation was out of bounds
++        val newPoint = Offset.fromAngle(angle, sat * radius) + center
++        try {
++          Color.hsv(hue, sat, 1f) to newPoint
++        } catch (e: IllegalArgumentException) {
++          // Just in case something goes wrong...
++          Color.hsv(0f, 0f, 0f) to newPoint
++        }
++      }
++    },
++    draw = { drawHsvColorGradient(controller.canvasSize) },
++  )
++}
+diff --git a/src/com/github/skydoves/colorpicker/compose/ImageBitmapExtensions.kt b/src/com/github/skydoves/colorpicker/compose/ImageBitmapExtensions.kt
+new file mode 100644
+index 0000000..5c30db4
+--- /dev/null
++++ b/src/com/github/skydoves/colorpicker/compose/ImageBitmapExtensions.kt
+@@ -0,0 +1,42 @@
++/*
++ * Designed and developed by 2022 skydoves (Jaewoong Eum)
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++package com.github.skydoves.colorpicker.compose
++
++import androidx.compose.ui.graphics.Canvas
++import androidx.compose.ui.graphics.Color
++import androidx.compose.ui.graphics.ImageBitmap
++import androidx.compose.ui.graphics.ImageBitmapConfig
++import androidx.compose.ui.graphics.Paint
++import androidx.compose.ui.unit.IntOffset
++import androidx.compose.ui.unit.IntSize
++
++/** Gets the pixel color at the given position. */
++internal fun ImageBitmap.getPixel(x: Int, y: Int): Color {
++  val buffer = IntArray(1)
++  readPixels(buffer, x, y, 1, 1)
++  return Color(buffer[0])
++}
++
++internal fun ImageBitmap.getPixel(point: IntOffset): Color =
++  getPixel(point.x, point.y)
++
++internal val ImageBitmap.size get() = IntSize(width, height)
++
++internal fun ImageBitmap.Companion.fromDrawing(size: IntSize, draw: Canvas.() -> Unit) =
++  ImageBitmap(size.width, size.height, ImageBitmapConfig.Argb8888).also { Canvas(it).draw() }
++
++internal fun ImageBitmap.Companion.fromPaint(paint: Paint, size: IntSize) =
++  ImageBitmap.fromDrawing(size) { drawRect(size, paint) }
+diff --git a/src/com/github/skydoves/colorpicker/compose/ImageColorPicker.kt b/src/com/github/skydoves/colorpicker/compose/ImageColorPicker.kt
+new file mode 100644
+index 0000000..a935681
+--- /dev/null
++++ b/src/com/github/skydoves/colorpicker/compose/ImageColorPicker.kt
+@@ -0,0 +1,161 @@
++/*
++ * Designed and developed by 2022 skydoves (Jaewoong Eum)
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++package com.github.skydoves.colorpicker.compose
++
++import androidx.compose.foundation.Image
++import androidx.compose.foundation.layout.fillMaxSize
++import androidx.compose.runtime.Composable
++import androidx.compose.runtime.LaunchedEffect
++import androidx.compose.runtime.collectAsState
++import androidx.compose.runtime.getValue
++import androidx.compose.runtime.mutableStateOf
++import androidx.compose.runtime.remember
++import androidx.compose.runtime.setValue
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.geometry.Offset
++import androidx.compose.ui.graphics.ImageBitmap
++import androidx.compose.ui.graphics.drawscope.DrawScope
++import androidx.compose.ui.graphics.painter.Painter
++import androidx.compose.ui.platform.LocalInspectionMode
++import androidx.compose.ui.unit.IntSize
++
++/**
++ * ImageColorPicker allows you to get colors from any images by tapping on the desired color.
++ *
++ * @param modifier [Modifier] to decorate the internal Canvas.
++ * @param controller Allows you to control and interacts with color pickers and all relevant subcomponents.
++ * @param paletteImageBitmap [ImageBitmap] to draw the palette.
++ * @param wheelImageBitmap [ImageBitmap] to draw the wheel.
++ * @param drawOnPosSelected to draw anything on the canvas when [ColorPickerController.selectedPoint] changes
++ * @param drawDefaultWheelIndicator should the indicator be drawn on the canvas. Defaults to false if either [wheelImageBitmap] or [drawOnPosSelected] are not null.
++ * @param paletteContentScale Represents a rule to apply to scale a source rectangle to be inscribed into a destination.
++ * @param previewImagePainter Display an image instead of the palette on the inspection preview mode on Android Studio.
++ * @param onColorChanged Color changed listener.
++ */
++@Composable
++public fun ImageColorPicker(
++  modifier: Modifier,
++  controller: ColorPickerController,
++  paletteImageBitmap: ImageBitmap,
++  wheelImageBitmap: ImageBitmap? = null,
++  drawOnPosSelected: (DrawScope.() -> Unit)? = null,
++  drawDefaultWheelIndicator: Boolean = wheelImageBitmap == null && drawOnPosSelected == null,
++  paletteContentScale: PaletteContentScale = PaletteContentScale.FIT,
++  previewImagePainter: Painter? = null,
++  onColorChanged: (colorEnvelope: ColorEnvelope) -> Unit = {},
++) {
++  if (LocalInspectionMode.current && previewImagePainter != null) {
++    Image(
++      modifier = modifier.fillMaxSize(),
++      painter = previewImagePainter,
++      contentDescription = null,
++    )
++    return
++  }
++
++  val controllerBitmap: ImageBitmap? by controller.paletteBitmap.collectAsState(
++    initial = paletteImageBitmap,
++  )
++  val imageBitmap = controllerBitmap ?: paletteImageBitmap
++
++  val width = remember(imageBitmap) { imageBitmap.width }
++  val height = remember(imageBitmap) { imageBitmap.height }
++  var offset by remember { mutableStateOf(Offset.Zero) }
++  var scale by remember { mutableStateOf(1f) }
++
++  LaunchedEffect(key1 = imageBitmap) {
++    controller.setup { point ->
++      val origPoint = (point - offset) / scale
++      val imPoint = Offset(
++        origPoint.x.coerceIn(0f, width - 1f),
++        origPoint.y.coerceIn(0f, height - 1f),
++      )
++      // TODO: transparent pixel handling
++      val px = imageBitmap.getPixel(imPoint.roundToInt())
++      val newPoint = imPoint * scale + offset
++      px to newPoint
++    }
++  }
++
++  ColorPicker(
++    modifier = modifier,
++    controller = controller,
++    wheelImageBitmap = wheelImageBitmap,
++    drawOnPosSelected = drawOnPosSelected,
++    drawDefaultWheelIndicator = drawDefaultWheelIndicator,
++    onColorChanged = onColorChanged,
++    sizeChanged = { size ->
++      val metrics = when (paletteContentScale) {
++        PaletteContentScale.FIT -> {
++          getMetricsForFit(imageBitmap.size, size)
++        }
++
++        PaletteContentScale.CROP -> {
++          getMetricsForCrop(imageBitmap.size, size)
++        }
++      }
++      scale = metrics.first
++      offset = metrics.second
++    },
++    setup = {
++      controller.setup { point ->
++        val origPoint = (point - offset) / scale
++        val imPoint = Offset(
++          origPoint.x.coerceIn(0f, width - 1f),
++          origPoint.y.coerceIn(0f, height - 1f),
++        )
++        // TODO: transparent pixel handling
++        val px = imageBitmap.getPixel(imPoint.roundToInt())
++        val newPoint = imPoint * scale + offset
++        px to newPoint
++      }
++    },
++    draw = {
++      drawImageRect(
++        image = imageBitmap,
++        dstOffset = offset.roundToInt(),
++        dstSize = imageBitmap.size * scale,
++        paint = emptyPaint,
++      )
++    },
++  )
++}
++
++private fun getMetricsForFit(imSize: IntSize, targetSize: IntSize) =
++  if (imSize.width * targetSize.height > targetSize.width * imSize.height) {
++    scaleToWidth(imSize, targetSize)
++  } else {
++    scaleToHeight(imSize, targetSize)
++  }
++
++private fun getMetricsForCrop(imSize: IntSize, targetSize: IntSize) =
++  if (imSize.width * targetSize.height > targetSize.width * imSize.height) {
++    scaleToHeight(imSize, targetSize)
++  } else {
++    scaleToWidth(imSize, targetSize)
++  }
++
++private fun scaleToWidth(imSize: IntSize, targetSize: IntSize): Pair<Float, Offset> {
++  val scale = targetSize.width.toFloat() / imSize.width
++  val offset = Offset(0f, (targetSize.height - imSize.height * scale) * 0.5f)
++  return scale to offset
++}
++
++private fun scaleToHeight(imSize: IntSize, targetSize: IntSize): Pair<Float, Offset> {
++  val scale = targetSize.height.toFloat() / imSize.height
++  val offset = Offset((targetSize.width - imSize.width * scale) * 0.5f, 0f)
++  return scale to offset
++}
+diff --git a/src/com/github/skydoves/colorpicker/compose/PaletteContentScale.kt b/src/com/github/skydoves/colorpicker/compose/PaletteContentScale.kt
+new file mode 100644
+index 0000000..57c9834
+--- /dev/null
++++ b/src/com/github/skydoves/colorpicker/compose/PaletteContentScale.kt
+@@ -0,0 +1,40 @@
++/*
++ * Designed and developed by 2022 skydoves (Jaewoong Eum)
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++package com.github.skydoves.colorpicker.compose
++
++/** Represents a rule to apply to scale a source rectangle to be inscribed into a destination. */
++public enum class PaletteContentScale {
++  /**
++   * Scale the source with maintaining the source's aspect ratio
++   * so that both dimensions (width and height) of the source will be equal to or less than the
++   * corresponding dimension of the target size.
++   */
++  FIT,
++
++  /**
++   * Crop ths source the corresponding dimension of the target size.
++   * so that if the dimensions (width and height) source is bigger than the target size,
++   * it will be cut off from the center.
++   */
++  CROP,
++
++  /**
++   * Scale the source with maintaining the source's aspect ratio
++   * so that if both dimensions (width and height) of the source is smaller than the target size,
++   * it will not be scaled.
++   */
++//    INSIDE,
++}
+diff --git a/src/com/github/skydoves/colorpicker/compose/README b/src/com/github/skydoves/colorpicker/compose/README
+new file mode 100644
+index 0000000..6542040
+--- /dev/null
++++ b/src/com/github/skydoves/colorpicker/compose/README
+@@ -0,0 +1,2 @@
++colorpicker-compose by skydoves (https://github.com/skydoves/colorpicker-compose),
++Apache License 2.0. Used by the lock screen clock customizer (lockscreen/ClockColorPickerDialog.kt).
+diff --git a/src/com/github/skydoves/colorpicker/compose/Slider.kt b/src/com/github/skydoves/colorpicker/compose/Slider.kt
+new file mode 100644
+index 0000000..afc357f
+--- /dev/null
++++ b/src/com/github/skydoves/colorpicker/compose/Slider.kt
+@@ -0,0 +1,183 @@
++/*
++ * Designed and developed by 2022 skydoves (Jaewoong Eum)
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++package com.github.skydoves.colorpicker.compose
++
++import androidx.compose.foundation.Canvas
++import androidx.compose.foundation.gestures.detectHorizontalDragGestures
++import androidx.compose.foundation.gestures.detectTapGestures
++import androidx.compose.foundation.layout.fillMaxWidth
++import androidx.compose.foundation.shape.RoundedCornerShape
++import androidx.compose.runtime.Composable
++import androidx.compose.runtime.getValue
++import androidx.compose.runtime.mutableStateOf
++import androidx.compose.runtime.remember
++import androidx.compose.runtime.setValue
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.draw.clip
++import androidx.compose.ui.geometry.Offset
++import androidx.compose.ui.graphics.Canvas
++import androidx.compose.ui.graphics.Color
++import androidx.compose.ui.graphics.ImageBitmap
++import androidx.compose.ui.graphics.LinearGradientShader
++import androidx.compose.ui.graphics.Paint
++import androidx.compose.ui.graphics.PaintingStyle
++import androidx.compose.ui.graphics.TileMode
++import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
++import androidx.compose.ui.input.pointer.pointerInput
++import androidx.compose.ui.layout.onSizeChanged
++import androidx.compose.ui.platform.LocalDensity
++import androidx.compose.ui.unit.Dp
++import androidx.compose.ui.unit.IntSize
++import androidx.compose.ui.unit.dp
++
++/**
++ * Slider allows you to adjust the a value of the selected color from color pickers.
++ * See [AlphaSlider] and [BrightnessSlider] for concrete versions.
++ *
++ * @param modifier [Modifier] to decorate the internal Canvas.
++ * @param controller Allows you to control and interacts with color pickers and all relevant subcomponents.
++ * @param borderRadius Radius of the border.
++ * @param borderSize [Dp] size of the border.
++ * @param borderColor [Color] of the border.
++ * @param wheelImageBitmap [ImageBitmap] to draw the wheel.
++ * @param wheelRadius Radius of the wheel.
++ * @param wheelColor [Color] of th wheel.
++ * @param wheelPaint [Paint] to draw the wheel.
++ * @param initialColor [Color] of the initial state. This property works for [HsvColorPicker] and
++ * it will be selected on rightmost of slider if you give null value.
++ *
++ * @param drawBackground optional function to draw anything on the canvas
++ * @param getValue function to get the current value from the controller
++ * @param setValue function to set the current value on the controller
++ * @param computeInitial function to compute the initial value from the initial color
++ * @param getGradientColors function to get the gradient colors from the controller
++ */
++@Composable
++internal fun Slider(
++  modifier: Modifier = Modifier,
++  controller: ColorPickerController,
++  borderRadius: Dp = 6.dp,
++  borderSize: Dp = 5.dp,
++  borderColor: Color = Color.LightGray,
++  wheelImageBitmap: ImageBitmap? = null,
++  wheelRadius: Dp = 12.dp,
++  wheelColor: Color = Color.White,
++  wheelAlpha: Float = 1.0f,
++  wheelPaint: Paint = Paint().apply {
++    color = wheelColor
++    alpha = wheelAlpha
++  },
++  initialColor: Color? = null,
++  drawBackground: Canvas.(IntSize) -> Unit = {},
++  getValue: ColorPickerController.() -> Float,
++  setValue: ColorPickerController.(Float, fromUser: Boolean) -> Unit,
++  computeInitial: (Color) -> Float,
++  getGradientColors: ColorPickerController.() -> List<Color>,
++) {
++  val density = LocalDensity.current
++  var background: ImageBitmap? = null
++  val borderPaint = Paint().apply {
++    style = PaintingStyle.Stroke
++    strokeWidth = with(density) { borderSize.toPx() }
++    color = borderColor
++  }
++  val colorPaint = Paint().apply {
++    color = controller.pureSelectedColor.value
++  }
++  val wheelRadiusPx = with(density) { wheelRadius.toPx() }
++
++  var isInitialized by remember { mutableStateOf(false) }
++
++  fun setValue(wheelPoint: Float) {
++    val position = background?.width?.toFloat()?.let { wheelPoint / it } ?: 0f
++    controller.setValue(position.coerceIn(0f, 1f), true)
++  }
++
++  Canvas(
++    modifier = modifier
++      .fillMaxWidth()
++      .clip(RoundedCornerShape(borderRadius))
++      .onSizeChanged { size ->
++        if (size.width != 0 && size.height != 0) {
++          background = ImageBitmap.fromDrawing(size) {
++            drawBackground(size)
++            drawRoundRect(size, borderRadius.value, borderPaint)
++          }
++        }
++      }
++      .pointerInput(Unit) {
++        detectHorizontalDragGestures { change, _ -> setValue(change.position.x) }
++      }
++      .pointerInput(Unit) { detectTapGestures { offset -> setValue(offset.x) } },
++  ) {
++    drawIntoCanvas { canvas ->
++      background?.let {
++        val (width, height) = it.size
++
++        // draw background bitmap.
++        canvas.drawImage(it)
++
++        // draw a linear gradient color shader.
++        val halfHeight = height * 0.5f
++        colorPaint.shader = LinearGradientShader(
++          colors = controller.getGradientColors(),
++          from = Offset(0f, halfHeight),
++          to = Offset(width.toFloat(), halfHeight),
++          tileMode = TileMode.Clamp,
++        )
++        canvas.drawRoundRect(it.size, borderRadius.value, colorPaint)
++
++        // draw wheel bitmap on the canvas.
++        canvas.drawWheel(
++          position = controller.getValue(),
++          width = width,
++          height = height,
++          wheelImageBitmap = wheelImageBitmap,
++          wheelRadius = wheelRadiusPx,
++          wheelColor = wheelColor,
++          wheelAlpha = wheelAlpha,
++          wheelPaint = wheelPaint,
++        )
++      }
++
++      if (initialColor != null && !isInitialized) {
++        isInitialized = true
++        controller.setValue(computeInitial(initialColor), false)
++      }
++    }
++  }
++}
++
++private fun Canvas.drawWheel(
++  position: Float,
++  width: Int,
++  height: Int,
++  wheelImageBitmap: ImageBitmap?,
++  wheelRadius: Float,
++  wheelColor: Color = Color.White,
++  wheelAlpha: Float = 1.0f,
++  wheelPaint: Paint = Paint().apply {
++    color = wheelColor
++    alpha = wheelAlpha
++  },
++) {
++  val center = Offset(position.coerceIn(0f, 1f) * width, height * 0.5f)
++  if (wheelImageBitmap == null) {
++    drawCircle(center, wheelRadius, wheelPaint)
++  } else {
++    drawImageCenterAt(wheelImageBitmap, center)
++  }
++}
