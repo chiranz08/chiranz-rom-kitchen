@@ -32,6 +32,9 @@ Format: problem → cause → fix → where.
 - Clear Calling (Google Device Connectivity Service) shipped and enabled; Now Playing entry in Sound settings.
 - High brightness mode: manual HBM and Auto HBM threshold page and QS tile (device parts).
 
+- LDAC silent (AAC fine), Nothing Ear: the A2DP offload path on this hardware only takes SBC/AAC/Opus, so the Bluetooth stack encodes LDAC in software, but the audio HAL still routed LDAC to the offload device ("bt-a2dp device port not found", output open -19) and playback stayed on the speaker path → A2DP (and LE audio) hardware offload off by default in device/google/zuma vendor.prop.
+- Developer options "Disable Bluetooth A2DP hardware offload" never stuck: the Bluetooth developer page rebooted without calling the switches' save step → it now applies A2DP offload / LE audio offload / LE audio mode changes before rebooting → Settings.
+- 3-button navigation cut off: Pixel Launcher's hide-pill overlay stayed on after leaving gesture mode and shrank the taskbar window that hosts the nav buttons → turned off outside gesture mode (restored from the pill setting on return) → Settings.
 ## Left as ASCP ships it
 - Pixel Launcher's app drawer doesn't blur with blur on (the home screen shows faintly through).
 - USB debugging comes on during setup (Android trade-in mode on a debuggable-type build).
