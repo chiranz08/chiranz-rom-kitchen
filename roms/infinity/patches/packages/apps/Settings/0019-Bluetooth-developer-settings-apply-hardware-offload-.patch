@@ -1,0 +1,26 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: chiranz <chiranz08@users.noreply.github.com>
+Date: Tue, 6 Oct 2026 07:08:45 +0000
+Subject: [PATCH 19/19] Bluetooth developer settings: apply hardware offload /
+ LE audio mode changes before rebooting (the switches never saved)
+
+---
+ .../bluetooth/BluetoothDevelopmentSettingsFragment.kt        | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/src/com/android/settings/development/bluetooth/BluetoothDevelopmentSettingsFragment.kt b/src/com/android/settings/development/bluetooth/BluetoothDevelopmentSettingsFragment.kt
+index 8a8c731..e507658 100644
+--- a/src/com/android/settings/development/bluetooth/BluetoothDevelopmentSettingsFragment.kt
++++ b/src/com/android/settings/development/bluetooth/BluetoothDevelopmentSettingsFragment.kt
+@@ -130,6 +130,11 @@ class BluetoothDevelopmentSettingsFragment :
+     }
+ 
+     override fun onRebootDialogConfirmed() {
++        // Apply the pending changes first; rebooting alone left the hardware offload switches
++        // unchanged (the property was never written).
++        use(BluetoothA2dpHwOffloadPreferenceController::class.java)?.onRebootDialogConfirmed()
++        use(BluetoothLeAudioHwOffloadPreferenceController::class.java)?.onRebootDialogConfirmed()
++        use(BluetoothLeAudioModePreferenceController::class.java)?.onRebootDialogConfirmed()
+         context?.getSystemService(PowerManager::class.java)?.reboot(null)
+     }
+ 

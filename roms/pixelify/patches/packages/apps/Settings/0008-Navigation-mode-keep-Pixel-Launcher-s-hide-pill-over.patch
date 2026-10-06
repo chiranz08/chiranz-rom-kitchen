@@ -1,0 +1,64 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: chiranz <chiranz08@users.noreply.github.com>
+Date: Tue, 6 Oct 2026 06:44:05 +0000
+Subject: [PATCH 8/9] Navigation mode: keep Pixel Launcher's hide-pill overlay
+ off outside gesture mode (it squashed the 3-button bar)
+
+---
+ .../SystemNavigationGestureSettings.java      | 36 +++++++++++++++++++
+ 1 file changed, 36 insertions(+)
+
+diff --git a/src/com/android/settings/gestures/SystemNavigationGestureSettings.java b/src/com/android/settings/gestures/SystemNavigationGestureSettings.java
+index fa3989b..8a4f357 100644
+--- a/src/com/android/settings/gestures/SystemNavigationGestureSettings.java
++++ b/src/com/android/settings/gestures/SystemNavigationGestureSettings.java
+@@ -233,6 +233,7 @@ public class SystemNavigationGestureSettings extends RadioButtonPickerFragment i
+     @Override
+     protected boolean setDefaultKey(String key) {
+         setCurrentSystemNavigationMode(mOverlayManager, key);
++        syncPixelLauncherGestureHint(getContext(), KEY_SYSTEM_NAV_GESTURAL.equals(key));
+         setIllustrationVideo(mVideoPreference, key);
+         return true;
+     }
+@@ -275,6 +276,41 @@ public class SystemNavigationGestureSettings extends RadioButtonPickerFragment i
+     }
+ 
+     @VisibleForTesting
++    private static final String NEXUSLAUNCHER_PACKAGE = "com.google.android.apps.nexuslauncher";
++    private static final String NOGESTUREHINT_OVERLAY =
++            "com.google.android.apps.nexuslauncher.overlay.nogesturehint";
++
++    /**
++     * The "hide gesture pill" overlay on Pixel Launcher shrinks its taskbar window, which in
++     * 3-button and 2-button mode also hosts the navigation buttons. Keep it on only in gesture
++     * mode with the pill turned off.
++     */
++    static void syncPixelLauncherGestureHint(Context context, boolean gestural) {
++        if (context == null) return;
++        try {
++            final boolean hintShown = Settings.Secure.getIntForUser(
++                    context.getContentResolver(), "navigation_bar_hint", 1,
++                    android.os.UserHandle.USER_CURRENT) != 0;
++            final boolean enable = gestural && !hintShown;
++            final android.content.om.OverlayManager om =
++                    context.getSystemService(android.content.om.OverlayManager.class);
++            final android.content.om.OverlayInfo info = om.getOverlayInfo(
++                    new android.content.om.OverlayIdentifier(NOGESTUREHINT_OVERLAY),
++                    android.os.UserHandle.of(android.app.ActivityManager.getCurrentUser()));
++            if (info == null || info.isEnabled() == enable) return;
++            om.commit(new android.content.om.OverlayManagerTransaction.Builder()
++                    .setEnabled(new android.content.om.OverlayIdentifier(NOGESTUREHINT_OVERLAY),
++                            enable, USER_CURRENT)
++                    .build());
++            // Pixel Launcher only reads the taskbar dimensions at start.
++            context.getSystemService(android.app.ActivityManager.class)
++                    .forceStopPackage(NEXUSLAUNCHER_PACKAGE);
++        } catch (Exception e) {
++            android.util.Log.w("SystemNavigationGesture", "Failed to sync "
++                    + NOGESTUREHINT_OVERLAY, e);
++        }
++    }
++
+     static void setCurrentSystemNavigationMode(IOverlayManager overlayManager, String key) {
+         String overlayPackage = NAV_BAR_MODE_GESTURAL_OVERLAY;
+         switch (key) {

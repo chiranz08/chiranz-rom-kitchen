@@ -12,7 +12,7 @@
 | Biometrics | Google face unlock (crDroid faceunlock), fingerprint |
 | Google | Standard app set (same in every ROM): Google Phone, Messages, Google file picker (Files icon), Pixel live/2025 wallpapers; Pixel Launcher, Google Camera, stock-Pixel-8 Gemini setup, Now Playing, Circle to Search |
 | Removed | TalkBack, Switch Access, search selector, partner setup, AI/emoji/Magic Portrait wallpapers, LineageOS Recorder |
-| Added | JamesDSP, PowerInsight (battery screens), Datura per-app firewall, blur intensity slider, Pixel Launcher pill toggle, Clear Calling, Now Playing entry in Sound, high brightness mode (page + QS tile), "Vibrate on gesture" for tap/lift/double-tap wake, iOS clock font |
+| Added | BCR call recorder, JamesDSP, PowerInsight (battery screens), Datura per-app firewall, blur intensity slider, Pixel Launcher pill toggle, Clear Calling, Now Playing entry in Sound, high brightness mode (page + QS tile), "Vibrate on gesture" for tap/lift/double-tap wake, iOS clock font |
 | Look | Pure black power menu and blur surfaces with the black theme; no circle behind the lock screen fingerprint icon; no pill behind the back arrow; Smooth Display (120 Hz) on by default |
 | Lock screen clocks | Pixelify-AOSP clock styles (92) with its customizer: colour/gradient/album-art, scale, margins, AOD animation, wobble on charge; clock font picker (locked for styles with their own font); "See all" gallery of mini lock screens with category filters |
 
