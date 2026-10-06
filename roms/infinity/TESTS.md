@@ -90,3 +90,9 @@ Device: Pixel 8 (shiba). Clean flash with data wipe. Firmware from the zip: boot
 - Customizer scrolls fully; Colour/Misc tabs open (crash fixed, confirmed with the crash log); "See all" gallery and category filters work.
 - Clock font row works and is locked for fixed-font styles.
 - USB mode sheet still not black with pure black (left as is).
+
+## 2026-10-06 — shiba build 07:18 UTC
+
+### Hands-on (owner)
+- LDAC plays on Nothing Ear (A2DP offload off by default).
+- 3-button navigation: still broken — all three buttons drawn stacked in the centre by Pixel Launcher's taskbar (taps register). No errors in launcher/system logs; not the hide-pill overlay, not setup/kids mode, same with Nova or Pixel Launcher as home. Left as is (owner uses gesture navigation).
