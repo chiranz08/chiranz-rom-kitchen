@@ -28,3 +28,7 @@ All on Pixel 8 (shiba), clean flash every time.
 - Surfaces neutral: surface effects 0–3 `#80000000 / #8a121212 / #26e0e0e0 / #1ae0e0e0`, surface `#000000`, container low `#0a0a0a`, container highest `#1e1e1e`, `system_accent2_800` `#000000`.
 - Blur off: shade, cards, app drawer pure black. Blur on: shade shows the blurred wallpaper through a 50 % black layer (expected).
 - Known: app drawer doesn't blur with blur on (left as is).
+
+## Pending (in source, not built yet)
+- BCR built in (vendor_chiranz `CHIRANZ_BCR`). Before flashing that build: remove the BCR Magisk/KernelSU module and reboot, so the two copies don't clash.
+- ASCP: LDAC default, offload switch fix, nav pill fix and BCR are in source; last ASCP builds predate them.

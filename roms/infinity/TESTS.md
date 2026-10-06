@@ -96,3 +96,6 @@ Device: Pixel 8 (shiba). Clean flash with data wipe. Firmware from the zip: boot
 ### Hands-on (owner)
 - LDAC plays on Nothing Ear (A2DP offload off by default).
 - 3-button navigation: still broken — all three buttons drawn stacked in the centre by Pixel Launcher's taskbar (taps register). No errors in launcher/system logs; not the hide-pill overlay, not setup/kids mode, same with Nova or Pixel Launcher as home. Left as is (owner uses gesture navigation).
+
+## Pending (in source, not built yet)
+- BCR built in (vendor_chiranz `CHIRANZ_BCR`). Before flashing that build: remove the BCR Magisk/KernelSU module and reboot, so the two copies don't clash.
